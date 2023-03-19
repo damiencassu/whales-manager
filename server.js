@@ -17,18 +17,21 @@ const LOG_FILE_ACCESS = "access.log";
 var app = EXPRESS();
 var accessLogStream = FS.createWriteStream(PATH.join(__dirname, LOG_DIR, LOG_FILE_ACCESS), {flags: "a"});
 
+//Enabling EXPRESS STATIC middleware - handle css, js, fonts ...
+app.use(EXPRESS.static("public"));
 
 //Enabling LOGGER middleware
 app.use(LOGGER(LOG_FORMAT, {stream: accessLogStream}));
 
 
 app.get("/", function(req,res) {
-	res.setHeader("Content-Type", "text/plain");
 	//console.log(DOCKER_API.test());
 	DOCKER_API.getContainerList("true", function(data){
 		console.log(data);
 	});
-        res.render("accueil.ejs", {test: "bravo !"});
+	res.setHeader("Content-Type", "text/html");
+	res.render("home.ejs");
+        //res.render("accueil.ejs", {test: "bravo !"});
 });
 
 

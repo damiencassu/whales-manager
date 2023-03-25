@@ -37,10 +37,11 @@ app.get("/", function(req,res) {
 });
 
 
-//Send default HTTP 404 erreur code if unknown resource
+//Send default HTTP 404 erreur page if unknown resource
 app.use(function(req, res, next){
-    res.setHeader("Content-Type", "text/plain");
-    res.send(404, "Page introuvable !");
+    res.setHeader("Content-Type", "text/html");
+    res.status(404);
+    res.render("error.ejs");
 });
 
 

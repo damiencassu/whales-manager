@@ -20,6 +20,10 @@
 	color: #ffc107 ;
 }
 
+.wm-navbar-brand {
+	text-decoration: none;
+}
+
 .wm-container-icon {
 	color: #ffc107 ;
 }

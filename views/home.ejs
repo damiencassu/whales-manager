@@ -23,6 +23,7 @@
 				</ul>
 				<div class="justify-content-end">
 					<span class="mx-2"><i class="bi bi-person-circle fa-2x wm-navbar-icon"></i></span>
+					<span class="mx-2"><i class="bi bi-bell-fill fa-2x wm-navbar-icon"></i></span>
 					<span class="mx-2"><i class="bi bi-question-circle fa-2x wm-navbar-icon" data-bs-toggle="modal" data-bs-target="#aboutPopup"></i></span>
 				</div>
 				
@@ -83,7 +84,7 @@
 					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body wm-about-popup-body">
-					<p>You are currently running Whales Manager v1.0.0 (dockerized)<p>
+					<p>You are currently running Whales Manager v<%=appVersion%> <% if (dockerized){ %>(dockerized)<% } %><p>
 					<p>Source code and documentation on  <a class="bi bi-github fa-lg wm-navbar-icon" href="https://github.com/damiencassu/whales-manager"></a></p>
 				</div>
 			</div>

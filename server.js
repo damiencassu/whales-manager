@@ -7,11 +7,15 @@ const PATH = require("node:path");
 //Custom module loading
 //var Container = require("./custom_modules/container");
 const DOCKER_API = require("./custom_modules/docker/dockerAPI");
+const CORE = require("./custom_modules/core/core");
 
 //Program constants
 const LOG_DIR = "logs";
 const LOG_FORMAT = "common";
 const LOG_FILE_ACCESS = "access.log";
+const APP_VERSION = CORE.getAppVersion();
+const DOCKERIZED = CORE.isDockerized();
+
 
 //Program global variables
 var app = EXPRESS();
@@ -25,13 +29,11 @@ app.use(LOGGER(LOG_FORMAT, {stream: accessLogStream}));
 
 
 app.get("/", function(req,res) {
-	//console.log(DOCKER_API.test());
 	DOCKER_API.getContainerList("true", function(data){
 		console.log(data);
 	});
 	res.setHeader("Content-Type", "text/html");
-	res.render("home.ejs");
-        //res.render("accueil.ejs", {test: "bravo !"});
+	res.render("home.ejs", {appVersion : APP_VERSION, dockerized: DOCKERIZED});
 });
 
 

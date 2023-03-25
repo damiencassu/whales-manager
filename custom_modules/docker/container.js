@@ -1,6 +1,3 @@
-const ContainerVolume = require("./containerVolume");
-const ContainerNetwork = require("./containerNetwork");
-
 //Class representing a container instance
 class Container {
 	/*
@@ -13,17 +10,29 @@ class Container {
 	   networks : list of ContainerNetwork objects
 	   volumes : list of ContainerVolume objects
 	*/
-	constructor(id, name, image, creationDate, state, stateDuration, networks, volumes){
+	constructor (id, name, image, imageHtmlClass, state, stateHtmlClass){
 		this.id = id;
 		this.name = name;
 		this.image = image;
-		this.creationDate = creationDate;
+		this.imageHtmlClass = imageHtmlClass;
 		this.state = state
-		this.stateDuration = stateDuration;
-		this.networks = networks;
-		this.volumes = volumes;	
+		this.stateHtmlClass = stateHtmlClass;
 	}	 
 
+	/*
+ 	   Take a raw JSON formatted list from dockerAPI and creates a Container list
+	   IconsDB and StatusDB properties must be provided
+	*/
+	static jsonToContainer (jsonRaw, iconsDB, stateDB){
+		var rawList = JSON.parse(jsonRaw);
+		var enhancedList = [];
+		for ( var index=0; index < rawList.length; index++ ) {
+			var current = rawList[index];
+			var newContainer = new Container(current.Id, current.Names[0], current.Image, iconsDB[current.Image.split(/[:\/]/)[0]], current.State, stateDB[current.State]);
+			enhancedList.push(newContainer);
+		}
+		return enhancedList;
+	}
 }
 
 

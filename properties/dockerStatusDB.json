@@ -1,0 +1,23 @@
+{
+	"created": {
+		"htmlClass": "wm-container-status-info"
+	},
+ 	"removing": {
+                "htmlClass": "wm-container-status-info"
+        },
+ 	"restarting": {
+                "htmlClass": "wm-container-status-warning"
+        },
+	"paused": {
+                "htmlClass": "wm-container-status-warning"
+        },
+	"running": {
+                "htmlClass": "wm-container-status-success"
+        },
+	"exited": {
+                "htmlClass": "wm-container-status-danger"
+        },
+	"dead": {
+                "htmlClass": "wm-container-status-danger"
+        }
+}

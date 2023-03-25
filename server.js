@@ -5,17 +5,19 @@ const FS = require("node:fs");
 const PATH = require("node:path");
 
 //Custom module loading
-//var Container = require("./custom_modules/container");
 const DOCKER_API = require("./custom_modules/docker/dockerAPI");
 const CORE = require("./custom_modules/core/core");
+const CONTAINER = require("./custom_modules/docker/container");
 
 //Program constants
 const LOG_DIR = "logs";
 const LOG_FORMAT = "common";
 const LOG_FILE_ACCESS = "access.log";
 const APP_VERSION = CORE.getAppVersion();
+const APP_REPO_URL = CORE.getAppRepoUrl();
 const DOCKERIZED = CORE.isDockerized();
-
+const DOCKER_STATUS = CORE.loadPropertyFile("./properties/dockerStatusDB.json");
+const DOCKER_ICONS = CORE.loadPropertyFile("./properties/dockerIconsDB.json");
 
 //Program global variables
 var app = EXPRESS();
@@ -27,14 +29,26 @@ app.use(EXPRESS.static("public"));
 //Enabling LOGGER middleware
 app.use(LOGGER(LOG_FORMAT, {stream: accessLogStream}));
 
-
+//Handle homepage requests
 app.get("/", function(req,res) {
-	DOCKER_API.getContainerList("true", function(data){
-		console.log(data);
-	});
 	res.setHeader("Content-Type", "text/html");
-	res.render("home.ejs", {appVersion : APP_VERSION, dockerized: DOCKERIZED});
+	res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED});
 });
+
+//Handle API requests
+app.get("/api/containersList", function(req, res) {
+
+	//Call Docker API to get the raw list
+	DOCKER_API.getContainerList("true", function(data){
+		//Create a parsed JSON list with css added info
+		//Send the result to the frontend
+		res.setHeader("Content-Type", "application/json");
+		res.send(CONTAINER.jsonToContainer(data, DOCKER_ICONS, DOCKER_STATUS));
+
+        });	
+});
+
+
 
 
 //Send default HTTP 404 erreur page if unknown resource

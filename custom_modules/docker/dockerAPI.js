@@ -3,7 +3,6 @@
 //Generic module loading
 const HTTP = require("http");
 const URL = require("url");
-const EventEmitter = require("events").EventEmitter;
 
 //Custom module loading
 const ContainerNetwork = require("./containerNetwork");

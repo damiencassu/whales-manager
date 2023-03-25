@@ -1,12 +1,12 @@
 //Generic module loading
 const EXPRESS = require("express");
 const LOGGER = require("morgan");
-const FS = require("fs");
-const PATH = require("path");
+const FS = require("node:fs");
+const PATH = require("node:path");
 
 //Custom module loading
 //var Container = require("./custom_modules/container");
-const DOCKER_API = require("./custom_modules/dockerAPI");
+const DOCKER_API = require("./custom_modules/docker/dockerAPI");
 
 //Program constants
 const LOG_DIR = "logs";

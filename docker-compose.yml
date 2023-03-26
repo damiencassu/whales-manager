@@ -1,0 +1,19 @@
+---
+version: "2"
+services:
+  whalesmanager:
+    build: 
+        context: .
+        dockerfile: Dockerfile
+    image: whalesmanager
+    restart: always
+    container_name: whalesmanager
+    working_dir:  /home/node/app
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./logs:/home/node/app/logs
+      - ./conf:/home/node/app/conf
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "npm start"
+...

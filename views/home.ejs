@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+		<!-- Bootstrap-5.1.3 -->
+		<link href="/css/bootstrap.min.css" rel="stylesheet">
+		<!-- Bootstrap-Icons-1.10.3 -->
+		<link href="/css/bootstrap-icons.css" rel="stylesheet">
+		<!-- Fontawesome-Free-6.3.0 -->
+		<link href="/css/fontawesome.min.css" rel="stylesheet">
+		<link href="/css/fontawesome-brands-icons.css" rel="stylesheet">
+		<!-- Custom Styles -->
+		<link href="/css/home.css" rel="stylesheet">
+        <title>Whales Manager</title>
+    </head>
+    <body>
+		<nav class="navbar navbar-expand navbar-dark bg-dark fixed-top">
+			<a class="wm-navbar-brand" href="/"><span class="navbar-brand mx-2"><strong>Whales Manager</strong></span></a>
+			<div class="container-fluid">
+				<ul class="navbar-nav justify-content-end">
+					<li class="nav-item">
+						<i class="bi bi-arrow-repeat fa-2x wm-navbar-icon"></i>
+					</li>
+				</ul>
+				<div class="justify-content-end">
+					<span class="mx-2"><i class="bi bi-person-circle fa-2x wm-navbar-icon"></i></span>
+					<span class="mx-2"><i class="bi bi-bell-fill fa-2x wm-navbar-icon"></i></span>
+					<span class="mx-2"><i class="bi bi-question-circle fa-2x wm-navbar-icon" data-bs-toggle="modal" data-bs-target="#aboutPopup"></i></span>
+				</div>
+				
+			</div>
+			
+		</nav>
+		<main>
+			<div id="mainContent" class="container">
+			</div>
+		</main>
+		
+	<!-- About Popup -->
+	<div class="modal fade" id="aboutPopup" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header wm-about-popup-header">
+					<h5 class="modal-title "><strong>About Whales Manager</strong></h5>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body wm-about-popup-body">
+					<p>You are currently running Whales Manager v<%=appVersion%> <% if (dockerized){ %>(dockerized)<% } %><p>
+					<p>Source code and documentation on  <a class="bi bi-github fa-lg wm-navbar-icon" href="<%=appRepoUrl%>"></a></p>
+				</div>
+			</div>
+		</div>
+	</div>	
+	
+	<!-- Bootstrap-5.1.3 JS Bundle-->	
+	<script src="/js/bootstrap.bundle.min.js"></script>
+	<!-- Custom Scripts -->
+	<script src="/js/home.js"></script>	
+    </body>
+</html>

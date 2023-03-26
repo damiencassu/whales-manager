@@ -1,0 +1,28 @@
+{
+	"default": {
+		"htmlClass": "fa-brands fa-docker"
+	},
+
+	"python": {
+        	"htmlClass": "fa-brands fa-python"
+	},
+
+	"node": {
+        	"htmlClass": "fa-brands fa-node-js"
+	},
+	"centos": {
+        	"htmlClass": "fa-brands fa-centos"
+	},
+	"redhat": {
+        	"htmlClass": "fa-brands fa-redhat"
+	},
+	"ubuntu": {
+        	"htmlClass": "fa-brands fa-ubuntu"
+	},
+	"fedora": {
+        	"htmlClass": "fa-brands fa-fedora"
+	},
+	"php": {
+        	"htmlClass": "fa-brands fa-php"
+	}
+}

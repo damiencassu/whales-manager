@@ -1,0 +1,26 @@
+.wm-container {
+	margin-right: 0.5rem!important;
+	margin-left: 0.5rem!important;
+	margin-top: 0.5rem!important;
+	margin-bottom: 0.5rem!important;
+	border-radius: 0.25rem!important;
+	background-color: #343a40!important;
+	color: #fff!important;
+}
+
+.wm-navbar-brand {
+        text-decoration: none;
+}
+
+.wm-container h1 {
+	border-bottom: 1px solid #ffc107;
+	padding-bottom: 0.5rem!important;
+}
+
+.wm-container * {
+	text-align: center!important;
+}
+
+main {
+	margin-top: 100px;
+}

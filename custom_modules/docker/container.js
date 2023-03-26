@@ -4,11 +4,9 @@ class Container {
 	   id : container unique identifier
 	   name : container name
 	   image : container image name
-	   creationDate : container creation date (epoch)
+	   imageHtmlClass : css class to apply on the container for its icon on the frontend
 	   state : container state
-	   stateDuration : duration of the current container state
-	   networks : list of ContainerNetwork objects
-	   volumes : list of ContainerVolume objects
+	   stateHtmlClass : css class to apply on the container for its status on the frontend
 	*/
 	constructor (id, name, image, imageHtmlClass, state, stateHtmlClass){
 		this.id = id;

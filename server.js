@@ -13,8 +13,10 @@ const CONTAINER = require("./custom_modules/docker/container");
 const LOG_DIR = "logs";
 const LOG_FORMAT = "common";
 const LOG_FILE_ACCESS = "access.log";
-const APP_VERSION = CORE.getAppVersion();
-const APP_REPO_URL = CORE.getAppRepoUrl();
+const APP_PACKAGE_JSON = CORE.getAppPackageJson();
+const APP_VERSION = CORE.getAppVersion(APP_PACKAGE_JSON);
+const APP_REPO_URL = CORE.getAppRepoUrl(APP_PACKAGE_JSON);
+const APP_PORT = CORE.getAppPort(APP_PACKAGE_JSON);
 const DOCKERIZED = CORE.isDockerized();
 const DOCKER_STATUS = CORE.loadPropertyFile("./properties/dockerStatusDB.json");
 const DOCKER_ICONS = CORE.loadPropertyFile("./properties/dockerIconsDB.json");
@@ -59,4 +61,4 @@ app.use(function(req, res, next){
 });
 
 
-app.listen(8888);
+app.listen(APP_PORT);

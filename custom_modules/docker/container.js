@@ -26,7 +26,13 @@ class Container {
 		var enhancedList = [];
 		for ( var index=0; index < rawList.length; index++ ) {
 			var current = rawList[index];
-			var newContainer = new Container(current.Id, current.Names[0], current.Image, iconsDB[current.Image.split(/[:\/]/)[0]], current.State, stateDB[current.State]);
+			var currentIcon = "";
+			if (iconsDB[current.Image.split(/[:\/]/)[0]] == undefined){
+				currentIcon = iconsDB.default;
+			} else {
+				currentIcon = iconsDB[current.Image.split(/[:\/]/)[0]];
+			}
+			var newContainer = new Container(current.Id, current.Names[0].split("/")[1], current.Image, currentIcon, current.State, stateDB[current.State]);
 			enhancedList.push(newContainer);
 		}
 		return enhancedList;
@@ -34,10 +40,5 @@ class Container {
 }
 
 
-//Exported Class
+//Export section
 module.exports = Container;
-
-//Exported Functions
-
-//Exported Values
-

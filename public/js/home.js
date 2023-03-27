@@ -19,11 +19,23 @@ async function getContainersList () {
 		dataHtml+= "<p><span class=\"wm-container-status " + data[index].stateHtmlClass.htmlClass + "\">" + data[index].state.toUpperCase() + "</span></p>";
 		dataHtml+= "</div>";
 		elementsInRow++;
-		console.log(elementsInRow + ":" + dataHtml);
 		
 	}
 	dataHtml+= "</div>";	
 	document.getElementById("mainContent").innerHTML = dataHtml;
 };
 
-getContainersList();
+
+//Displays loadbar and triggers API call
+function loadContent () {
+
+	document.getElementById("mainContent").innerHTML = "<div class=\"row wm-loader-row\"><div class=\"col-2 offset-5 wm-loader\"></div></div>";
+	setTimeout(getContainersList, "2500");
+}
+
+
+//Refresh button function
+document.getElementById("refreshButton").addEventListener("click", loadContent);
+
+//Load content when home page opens
+loadContent();

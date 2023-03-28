@@ -43,6 +43,40 @@
 	color: #fff!important;
 }
 
+.wm-about-popup-footer {
+	background-color: #343a40!important;
+        color: #fff!important;
+	justify-content: start!important;
+	border-top: 1px solid #ffc107!important;
+}
+
+#wm-update-button {
+        color: #000;
+        background-color: #ffc107;
+        border-color: #ffc107;	
+}
+
+#wm-update-button:hover {
+        background-color: #ffdb4d;
+        border-color: #ffdb4d;
+}
+
+#wm-update-button:focus {
+	box-shadow: none!important;
+}
+
+.wm-spinner-grow {
+    	width: 0.5rem;
+    	height: 0.5rem;
+    	vertical-align: -0.125em;
+    	background-color: currentColor;
+    	border-radius: 50%;
+    	opacity: 0;
+    	-webkit-animation: 0.75s linear infinite spinner-grow; /* Compatibility for Safari */
+	animation: 0.75s linear infinite spinner-grow;
+	animation-delay:
+}
+
 .wm-container-status {
 	display: inline-block;
 	font-weight: 400;

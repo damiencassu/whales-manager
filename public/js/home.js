@@ -34,8 +34,22 @@ function loadContent () {
 }
 
 
+
+//Handles update button load animation and triggers API call
+function loadUpdate () {
+
+	document.getElementById("wm-update-button").innerHTML = "<span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span><span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span><span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span>";
+	//Api call to check update
+
+}
+
+
 //Refresh button function
 document.getElementById("refreshButton").addEventListener("click", loadContent);
+
+//Update button function
+document.getElementById("wm-update-button").addEventListener("click", loadUpdate);
+
 
 //Load content when home page opens
 loadContent();

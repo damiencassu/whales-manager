@@ -50,6 +50,19 @@ app.get("/api/containersList", function(req, res) {
         });	
 });
 
+app.get("/api/checkUpdate", function(req, res) {
+
+	CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
+		console.log(result);
+		//Create a parsed JSON containing the checkUpdate process result
+		//Send the result to the frontend
+		res.setHeader("Content-Type", "application/json");
+                res.send(result);
+	
+	});
+
+});
+
 
 
 

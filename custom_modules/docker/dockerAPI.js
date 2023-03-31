@@ -15,10 +15,10 @@ const DOCKER_API_LIST_CONTAINER_URI = "/containers/json";
 
 //Function which retrieves the list of containers managed by the local docker engine
 /*
-    all: retrieve all containers (TRUE) or only running ones (FALSE)
-    apiResponseCallback: callback function which handles detected containers raw JSON list returned by docker API 
-*/
-function getContainerList (all, apiResponseCallback){
+ * all: retrieve all containers (TRUE) or only running ones (FALSE)
+ * callback function which takes a data object containing the raw JSON list of containers returned by docker API 
+ */
+function getContainerList (all, callback){
 	var getContainerListURL = new URL.URL(DOCKER_API_VERSION + DOCKER_API_LIST_CONTAINER_URI, DOCKER_API_BASE);
 	getContainerListURL.search = "all=" + all;
         HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getContainerListURL}, function(res){
@@ -28,7 +28,7 @@ function getContainerList (all, apiResponseCallback){
 		});
 
 		res.on("end", function() {
-			apiResponseCallback(data);
+			callback(data);
 		});
 
 		res.on("error", function(err){

@@ -1,28 +1,16 @@
 //The core module offers static funtions realted to server initial startup and running tasks
 const FS = require("node:fs");
-const CP = require("node:child_process");
-const OS = require("node:os");
 const PATH = require("node:path");
+const HTTPS = require("node:https");
+const URL = require("node:url");
+
+//Program constants
+const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/";
+const GITHUB_PACKAGE_LOCATION = "/main/package.json";
 
 //Load App Package.JSON as an object
 function getAppPackageJson (){
         return JSON.parse(FS.readFileSync("package.json"));
-}
-
-//Load asynchronously an App Package.JSON as an object
-/* Can raise an exception if error when reading the file
- * filePath : file to the package.json file to load
- * callback : callback function which takes a data object containing the loaded package.json file as an object and an error object if an error occured
- */
-function getPackageJson (filePath, callback){
-	FS.readFile(filePath, function(err, data){
-		if (err) {
-			callback(err, null);
-		} else {
-			callback(null, JSON.parse(data));
-		}
-	});
-
 }
 
 //Load App version from package.json
@@ -59,79 +47,50 @@ function loadPropertyFile (filePath){
  * appRepoUrl : the repo url of the running app (from current package.json)
  * callback : callback function which takes a result object with the following attributes
  * 	result.update = true|false (if the check update process occured without error)
- * 	result.latest = <string> ("vx.x.x" if an update is available, retuirn the lastest version)
+ * 	result.latest = <string> ("vx.x.x" if an update is available, return the lastest version)
  * 	result.error = true (if the check update process failed)
  */
 function checkAppUpdate(runningVersion, appRepoUrl, callback){
 		
-	//Create temp directory to clone the remote repository
-	FS.mkdtemp(PATH.join(OS.tmpdir(), "wm-"), function (err, tempDir) {
-		if (err) {
-			console.log("temp dir not created ");
+	//Extracting repository and account name
+	var splittedRepoName = appRepoUrl.split(/[.\/]/);
+	var repoName = splittedRepoName[splittedRepoName.length - 2];
+	var repoAccountName = splittedRepoName[splittedRepoName.length - 3]; 
+
+	//Download latest main remote package.json file for the given repository
+	var remotePackageJsonURL = new URL.URL("/" + repoAccountName + "/" + repoName + GITHUB_PACKAGE_LOCATION, GITHUB_RAW_BASE);
+
+	console.log(remotePackageJsonURL);
+	HTTPS.get(remotePackageJsonURL, function(res){
+            	
+		if (res.statusCode != 200 && res.statusCode != 304){
+
+			console.log("error contacting raw github:" + res.statusCode);
 			callback({error: true});
 		} else {
-			
-			console.log("temp dir created : " + tempDir); 
-			//Clone the repository		
-			CP.exec("git clone " + appRepoUrl + " " + tempDir ,function (err, stdout, stderr) {
-				
-				//If error, remove tempDir
-				if (err) {
-					
-					console.log("git clone done with error, cleaning dir");
-					
-					FS.rm(tempDir, {force: true, recursive: true}, function (err) {
-                                               	if (err) {
-                                               		console.log("cleaning failed");
-						} else {
-							console.log("cleanup done");
-						}
-						callback({error: true});
-                                       	});
-				} else { 
+			var data = "";
+               		res.on("data", function(chunk){
+                  		data += chunk;
+               		});
 
-					
-		 			//Extract remote version package
-					getPackageJson (PATH.join(tempDir, "package.json"), function (err, data){
-							
-						if (err) {	
-							console.log("package.json issue, cleaning dir");
-							FS.rm(tempDir, {force: true, recursive: true}, function (err) {
-                                                       		if (err) {
-                                                               		console.log("cleaning failed");
-                                                       		} else {
-                                                               		console.log("cleanup done");
-                                                       		}
-                                                       		callback({error: true});
-                                                
-							});
-						} else {
-						
-							//If all went well, remove tempDir
-							FS.rm(tempDir, {force: true, recursive: true}, function (err) {
-								if (err) {
-					      				console.log("cleaning failed");
-					        		} else { 
-									console.log("cleanup done");
-			                        		}
-					
-								//Compare remote version with running one
-								if( runningVersion < getAppVersion(data)){
-									console.log("update available");
-									callback({update: true, latest: getAppVersion(data)});
-								} else {
-									console.log("no update available");
-									callback({update: false});
-								}
-							});
-						}
-					});
-				}	
-			}); 
+               		res.on("end", function() {
+				if( runningVersion < getAppVersion(JSON.parse(data))){
+                              		console.log("update available");
+                                	callback({update: true, latest: getAppVersion(JSON.parse(data))});
+                        	} else {
+                                	console.log("no update available");
+                        		callback({update: false});
+                		}
+               		});
+
+               		res.on("error", function(err){
+                 		console.log("ERROR : API Call failed : " + err.message);
+				callback({error: true});
+             		});
 		}
-	});				
-
+       	});
 }
+						 
 
 //Export section
 module.exports.getAppPackageJson = getAppPackageJson;

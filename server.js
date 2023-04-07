@@ -20,6 +20,7 @@ const APP_PORT = CORE.getAppPort(APP_PACKAGE_JSON);
 const DOCKERIZED = CORE.isDockerized();
 const DOCKER_STATUS = CORE.loadPropertyFile("./properties/dockerStatusDB.json");
 const DOCKER_ICONS = CORE.loadPropertyFile("./properties/dockerIconsDB.json");
+const DOCKER_API_VERSION = DOCKER_API.getDockerAPIVersion(DOCKERIZED);
 
 //Program global variables
 var app = EXPRESS();
@@ -41,7 +42,7 @@ app.get("/", function(req,res) {
 app.get("/api/containersList", function(req, res) {
 
 	//Call Docker API to get the raw list
-	DOCKER_API.getContainerList("true", function(data){
+	DOCKER_API.getContainerList("true", DOCKER_API_VERSION, function(data){
 		//Create a parsed JSON list with css added info
 		//Send the result to the frontend
 		res.setHeader("Content-Type", "application/json");

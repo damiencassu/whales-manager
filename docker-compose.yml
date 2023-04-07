@@ -11,6 +11,8 @@ services:
     working_dir:  /home/node/app
     ports:
       - "8888:8888"
+    environment:
+      - DOCKER_API_VERSION=1.41
     volumes:
       - ./logs:/home/node/app/logs
       - ./conf:/home/node/app/conf

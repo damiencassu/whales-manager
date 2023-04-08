@@ -48,6 +48,10 @@
 					<p>You are currently running Whales Manager v<%=appVersion%> <% if (dockerized){ %>(dockerized)<% } %><p>
 					<p>Source code and documentation on  <a class="bi bi-github fa-lg wm-navbar-icon" href="<%=appRepoUrl%>"></a></p>
 				</div>
+				<div class="modal-footer wm-about-popup-footer">
+					<button type="button" id="wm-update-button" class="btn">Check for updates</button>
+					<span id="wm-update-result"></span>
+				</div>
 			</div>
 		</div>
 	</div>	

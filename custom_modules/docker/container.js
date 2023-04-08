@@ -1,13 +1,13 @@
 //Class representing a container instance
 class Container {
 	/*
-	   id : container unique identifier
-	   name : container name
-	   image : container image name
-	   imageHtmlClass : css class to apply on the container for its icon on the frontend
-	   state : container state
-	   stateHtmlClass : css class to apply on the container for its status on the frontend
-	*/
+	 * id : container unique identifier
+	 * name : container name
+	 * image : container image name
+	 * imageHtmlClass : css class to apply on the container for its icon on the frontend
+	 * state : container state
+	 * stateHtmlClass : css class to apply on the container for its status on the frontend
+	 */
 	constructor (id, name, image, imageHtmlClass, state, stateHtmlClass){
 		this.id = id;
 		this.name = name;
@@ -18,9 +18,9 @@ class Container {
 	}	 
 
 	/*
- 	   Take a raw JSON formatted list from dockerAPI and creates a Container list
-	   IconsDB and StatusDB properties must be provided
-	*/
+ 	 * Take a raw JSON formatted list from dockerAPI and creates a Container list
+	 * IconsDB and StatusDB properties must be provided
+	 */
 	static jsonToContainer (jsonRaw, iconsDB, stateDB){
 		var rawList = JSON.parse(jsonRaw);
 		var enhancedList = [];

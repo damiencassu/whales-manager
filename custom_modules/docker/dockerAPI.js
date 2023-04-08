@@ -49,7 +49,7 @@ function getDockerAPIVersion (dockerized){
 		return process.env.DOCKER_API_VERSION;	
 	} else {
 	//Else check directly on the host
-		return CP.execSync("docker version --format '{{json .Server.APIVersion}}'").toString();
+		return JSON.parse(CP.execSync("docker version --format '{{json .Server.APIVersion}}'"));
 	}
 }
 

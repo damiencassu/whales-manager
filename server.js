@@ -22,6 +22,11 @@ const DOCKER_STATUS = CORE.loadPropertyFile("./properties/dockerStatusDB.json");
 const DOCKER_ICONS = CORE.loadPropertyFile("./properties/dockerIconsDB.json");
 const DOCKER_API_VERSION = DOCKER_API.getDockerAPIVersion(DOCKERIZED);
 
+//Create local logs directory if needed
+if (!FS.existsSync(PATH.join(__dirname, LOG_DIR))){
+	FS.mkdirSync(PATH.join(__dirname, LOG_DIR));	
+}
+
 //Program global variables
 var app = EXPRESS();
 var accessLogStream = FS.createWriteStream(PATH.join(__dirname, LOG_DIR, LOG_FILE_ACCESS), {flags: "a"});

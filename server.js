@@ -1,6 +1,6 @@
 //Generic module loading
 const EXPRESS = require("express");
-const LOGGER = require("morgan");
+const LOGGER_HTTP = require("morgan");
 const FS = require("node:fs");
 const PATH = require("node:path");
 
@@ -8,11 +8,13 @@ const PATH = require("node:path");
 const DOCKER_API = require("./custom_modules/docker/dockerAPI");
 const CORE = require("./custom_modules/core/core");
 const CONTAINER = require("./custom_modules/docker/container");
+const LOGGER_SYS = require("./custom_modules/core/logger");
 
 //Program constants
 const LOG_DIR = "logs";
-const LOG_FORMAT = "common";
+const LOG_FORMAT_HTTP = "common";
 const LOG_FILE_ACCESS = "access.log";
+const LOG_FILE_SYS = "server.log";
 const APP_PACKAGE_JSON = CORE.getAppPackageJson();
 const APP_VERSION = CORE.getAppVersion(APP_PACKAGE_JSON);
 const APP_REPO_URL = CORE.getAppRepoUrl(APP_PACKAGE_JSON);
@@ -27,6 +29,9 @@ if (!FS.existsSync(PATH.join(__dirname, LOG_DIR))){
 	FS.mkdirSync(PATH.join(__dirname, LOG_DIR));	
 }
 
+//Create Logger for system events
+var sysLogger = new LOGGER_SYS("debug", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));
+
 //Program global variables
 var app = EXPRESS();
 var accessLogStream = FS.createWriteStream(PATH.join(__dirname, LOG_DIR, LOG_FILE_ACCESS), {flags: "a"});
@@ -34,8 +39,8 @@ var accessLogStream = FS.createWriteStream(PATH.join(__dirname, LOG_DIR, LOG_FIL
 //Enabling EXPRESS STATIC middleware - handle css, js, fonts ...
 app.use(EXPRESS.static("public"));
 
-//Enabling LOGGER middleware
-app.use(LOGGER(LOG_FORMAT, {stream: accessLogStream}));
+//Enabling HTTP LOGGER middleware
+app.use(LOGGER_HTTP(LOG_FORMAT_HTTP, {stream: accessLogStream}));
 
 //Handle homepage requests
 app.get("/", function(req,res) {
@@ -59,7 +64,6 @@ app.get("/api/containersList", function(req, res) {
 app.get("/api/checkUpdate", function(req, res) {
 
 	CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
-		console.log(result);
 		//Create a parsed JSON containing the checkUpdate process result
 		//Send the result to the frontend
 		res.setHeader("Content-Type", "application/json");
@@ -81,3 +85,4 @@ app.use(function(req, res, next){
 
 
 app.listen(APP_PORT);
+sysLogger.info("server", "Whales Manager v" + APP_VERSION + " started");

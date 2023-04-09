@@ -6,7 +6,7 @@ const URL = require("node:url");
 const CP = require("node:child_process");
 
 //Custom module loading
-const Container = require("./container");
+const LOGGER_SYS = require("../core/logger");
 
 //Program constants
 const DOCKER_UNIX_SOCKET = "/var/run/docker.sock";
@@ -19,9 +19,15 @@ const DOCKER_API_LIST_CONTAINER_URI = "/containers/json";
  * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
  * callback function which takes a data object containing the raw JSON list of containers returned by docker API 
  */
-function getContainerList (all, dockerApiVersion, callback){
+function getContainerList (all, dockerApiVersion, callback, logger){
+	
 	var getContainerListURL = new URL.URL("/v" + dockerApiVersion + DOCKER_API_LIST_CONTAINER_URI, DOCKER_API_BASE);
 	getContainerListURL.search = "all=" + all;
+
+	if (logger != undefined){
+        	logger.debug("dockerapi", "Calling Docker API on: " + getContainerListURL);
+        }
+
         HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getContainerListURL}, function(res){
 		var data = "";				
 		res.on("data", function(chunk){
@@ -33,7 +39,10 @@ function getContainerList (all, dockerApiVersion, callback){
 		});
 
 		res.on("error", function(err){
-			console.log("ERROR : API Call failed : " + err.message);
+
+			if (logger != undefined){
+                		logger.error("dockerapi", "Call to Docker API failed on: " + getContainerListURL + " with: " + err.message);
+        		}
 		});
 	});
 }
@@ -42,14 +51,22 @@ function getContainerList (all, dockerApiVersion, callback){
 /*
  * dockerized: boolean set to true is process is dockerized, false if not
  */
-function getDockerAPIVersion (dockerized){
+function getDockerAPIVersion (dockerized, logger){
 
 	//If running in docker, read environment variable
 	if (dockerized){
-		return process.env.DOCKER_API_VERSION;	
+		var apiVersion = process.env.DOCKER_API_VERSION;
+		if (logger != undefined){
+                        logger.debug("dockerapi", "Detecting Docker server API version: " + apiVersion);
+                }
+		return apiVersion;	
 	} else {
 	//Else check directly on the host
-		return JSON.parse(CP.execSync("docker version --format '{{json .Server.APIVersion}}'"));
+		var apiVersion = JSON.parse(CP.execSync("docker version --format '{{json .Server.APIVersion}}'"));
+                if (logger != undefined){
+                        logger.debug("dockerapi", "Detecting Docker server API version: " + apiVersion);
+                }
+		return apiVersion;	
 	}
 }
 

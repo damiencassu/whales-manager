@@ -1,3 +1,6 @@
+//Custom module loading
+const LOGGER_SYS = require("../core/logger");
+
 //Class representing a container instance
 class Container {
 	/*
@@ -21,7 +24,8 @@ class Container {
  	 * Take a raw JSON formatted list from dockerAPI and creates a Container list
 	 * IconsDB and StatusDB properties must be provided
 	 */
-	static jsonToContainer (jsonRaw, iconsDB, stateDB){
+	static jsonToContainer (jsonRaw, iconsDB, stateDB, logger){
+		
 		var rawList = JSON.parse(jsonRaw);
 		var enhancedList = [];
 		for ( var index=0; index < rawList.length; index++ ) {
@@ -32,9 +36,15 @@ class Container {
 			} else {
 				currentIcon = iconsDB[current.Image.split(/[:\/]/)[0]];
 			}
+
 			var newContainer = new Container(current.Id, current.Names[0].split("/")[1], current.Image, currentIcon, current.State, stateDB[current.State]);
 			enhancedList.push(newContainer);
 		}
+
+		if (logger != undefined){
+                        logger.debug("container", "Converting Json to container");
+                }
+
 		return enhancedList;
 	}
 }

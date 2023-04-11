@@ -13,7 +13,7 @@ const LOGGER_SYS = require("./logger");
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/";
 const GITHUB_PACKAGE_LOCATION = "/main/package.json";
 
-//Load App Package.JSON as an object
+//Load App Package.JSON as an object, throw an exception if not found or error
 function getAppPackageJson (logger){
 	if (logger != undefined){
 		logger.debug("core", "Loading package.json file");
@@ -60,12 +60,25 @@ function isDockerized (logger){
 	} 
 }
 
-//Load a JSON property file
+//Load a JSON property file, throw an exception if not found or error
 function loadPropertyFile (filePath, logger){
 	if (logger != undefined){
         	logger.debug("core", "Loading property file: " + filePath);
         }
         return JSON.parse(FS.readFileSync(filePath));
+}
+
+//Load a JSON config file, return undefined it not found or error
+function loadConfigFile (filePath, logger){
+        if (logger != undefined){
+                logger.debug("core", "Loading config file: " + filePath);
+        }
+	try {
+
+		return JSON.parse(FS.readFileSync(filePath));		
+	} catch (err) {
+		return undefined;
+	}
 }
 
 //Check asynchronously if update is available on the official APP GitHub repository
@@ -138,4 +151,5 @@ module.exports.getAppRepoUrl = getAppRepoUrl;
 module.exports.getAppPort = getAppPort;
 module.exports.isDockerized = isDockerized; 
 module.exports.loadPropertyFile = loadPropertyFile;
+module.exports.loadConfigFile = loadConfigFile;
 module.exports.checkAppUpdate = checkAppUpdate;

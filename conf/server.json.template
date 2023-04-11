@@ -1,0 +1,4 @@
+//Template for server.json configuration file - remove this line and the trailing ".template" to load it with Whales Manager
+{
+	"debugLevel": "debug"
+}

@@ -22,9 +22,23 @@ if (!FS.existsSync(PATH.join(__dirname, LOG_DIR))){
 }
 
 //Create Logger for system events
-var sysLogger = new LOGGER_SYS("debug", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));
+var sysLogger = new LOGGER_SYS("info", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));
+sysLogger.info("server", "########## Whales Manager starting... ##########");
 
-sysLogger.info("server", "Whales Manager starting...");
+//Loading APP Config values
+const APP_CONFIG = CORE.loadConfigFile("./conf/server.json");
+if (APP_CONFIG != undefined) {
+	sysLogger.info("server", "Config file detected and successfully loaded, applying custom values");
+	if (APP_CONFIG.debugLevel != undefined) {
+		sysLogger.logLevel = APP_CONFIG.debugLevel;
+		sysLogger.info("server", "Debug level set to " + sysLogger.logLevel.toUpperCase() + " (custom)");
+	} else {
+		sysLogger.warn("server", "Debug level set to INFO (default)");
+	}
+} else {
+	sysLogger.warn("server", "No config file detected, applying default values");
+        sysLogger.warn("server", "Debug level set to INFO (default)");
+}
 
 //Other program constants
 const APP_PACKAGE_JSON = CORE.getAppPackageJson(sysLogger);

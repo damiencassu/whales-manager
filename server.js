@@ -16,10 +16,6 @@ const LOG_FORMAT_HTTP = "common";
 const LOG_FILE_ACCESS = "access.log";
 const LOG_FILE_SYS = "server.log";
 
-//Create local logs directory if needed
-if (!FS.existsSync(PATH.join(__dirname, LOG_DIR))){
-        FS.mkdirSync(PATH.join(__dirname, LOG_DIR));
-}
 
 //Create Logger for system events
 var sysLogger = new LOGGER_SYS("info", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));

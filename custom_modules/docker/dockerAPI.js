@@ -62,11 +62,15 @@ function getDockerAPIVersion (dockerized, logger){
 		return apiVersion;	
 	} else {
 	//Else check directly on the host
-		var apiVersion = JSON.parse(CP.execSync("docker version --format '{{json .Server.APIVersion}}'"));
-                if (logger != undefined){
-                        logger.debug("dockerapi", "Detecting Docker server API version: " + apiVersion);
-                }
-		return apiVersion;	
+		try {
+			var apiVersion = JSON.parse(CP.execSync("docker version --format '{{json .Server.APIVersion}}'"));
+                	if (logger != undefined){
+                        	logger.debug("dockerapi", "Detecting Docker server API version: " + apiVersion);
+                	}
+			return apiVersion;
+		} catch (err) {
+			return undefined;
+		}
 	}
 }
 

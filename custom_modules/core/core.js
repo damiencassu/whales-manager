@@ -13,36 +13,61 @@ const LOGGER_SYS = require("./logger");
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/";
 const GITHUB_PACKAGE_LOCATION = "/main/package.json";
 
-//Load App Package.JSON as an object, throw an exception if not found or error
+//Load App Package.JSON as an object, return undefined if not found or error
 function getAppPackageJson (logger){
 	if (logger != undefined){
 		logger.debug("core", "Loading package.json file");
 	}
-        return JSON.parse(FS.readFileSync("package.json"));
+	try {
+
+        	return JSON.parse(FS.readFileSync("package.json"));
+	} catch (err) {
+		return undefined;
+	}
 }
 
-//Load App version from package.json
+//Load App version from package.json, return undefined if not found
 function getAppVersion (packageJson, logger){
-	if (logger != undefined){
-                logger.debug("core", "Detecting running app version from package.json: " + packageJson.version);
-        }
-	return packageJson.version;
+	if (packageJson != undefined) {
+		if (logger != undefined){
+			logger.debug("core", "Detecting running app version from package.json: " + packageJson.version);
+		}
+		return packageJson.version;
+	} else {
+		return undefined;
+	}
 }
 
-//Load App repository URL from package.json
+//Load App repository URL from package.json, return undefined if not found
 function getAppRepoUrl (packageJson, logger){
-	if (logger != undefined){
-                logger.debug("core", "Detecting running app repository url from package.json: " + packageJson.repository.url);
-        }
-        return packageJson.repository.url;
+	if (packageJson != undefined) {
+		if (packageJson.repository != undefined) {
+			if (logger != undefined){
+				logger.debug("core", "Detecting running app repository url from package.json: " + packageJson.repository.url);
+			}
+			return packageJson.repository.url;
+		} else {
+			return undefined;
+		}
+	} else {
+		return undefined;
+	}
 }
 
-//Load App port from package.json
+//Load App port from package.json, return undefined if not found
 function getAppPort (packageJson, logger){
-	if (logger != undefined){
-                logger.debug("core", "Detecting running app port from package.json: " + packageJson.config.port);
+	if (packageJson != undefined) {
+		if (packageJson.config != undefined) {
+			if (logger != undefined){
+				logger.debug("core", "Detecting running app port from package.json: " + packageJson.config.port);
+			}
+			return packageJson.config.port;
+		} else {
+			return undefined;
+                }
+        } else {
+                return undefined;
         }
-	return packageJson.config.port;
 }
 
 //Check if the app is running inside a docker container
@@ -60,12 +85,17 @@ function isDockerized (logger){
 	} 
 }
 
-//Load a JSON property file, throw an exception if not found or error
+//Load a JSON property file, return undefined if not found or error
 function loadPropertyFile (filePath, logger){
 	if (logger != undefined){
         	logger.debug("core", "Loading property file: " + filePath);
         }
-        return JSON.parse(FS.readFileSync(filePath));
+	try {
+
+	        return JSON.parse(FS.readFileSync(filePath));
+	} catch (err) {
+		return undefined;
+	}
 }
 
 //Load a JSON config file, return undefined it not found or error

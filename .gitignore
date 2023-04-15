@@ -110,3 +110,4 @@ dist
 
 # Conf files
 conf/*.json
+#conf/*.template

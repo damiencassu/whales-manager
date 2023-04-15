@@ -109,5 +109,4 @@ dist
 *.swp
 
 # Conf files
-conf/*.json
-#conf/*.template
+conf/

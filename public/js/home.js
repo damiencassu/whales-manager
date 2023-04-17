@@ -1,3 +1,23 @@
+//Call API to start a container
+function startContainer (eventTarget) {
+
+	eventTarget.currentTarget.className = "wm-container-controls-loading wm-start bi bi-play-circle";
+}	
+
+//Call API to stop a container
+function stopContainer (eventTarget) {
+
+        eventTarget.currentTarget.className = "wm-container-controls-loading wm-stop bi bi-stop-circle";
+}
+
+
+//Call API to restart a container
+function restartContainer (eventTarget) {
+
+	eventTarget.currentTarget.className = "wm-container-controls-loading wm-restart bi bi-arrow-clockwise";
+}
+
+
 //Call API to get the containers list and update frontend accordingly
 async function getContainersList () {
 	var res = await fetch("/api/containersList");
@@ -12,17 +32,35 @@ async function getContainersList () {
                         elementsInRow = 0;
 		}
 		
-		dataHtml+= "<div class=\"col-3 wm-container\">";
-		dataHtml+= "<h3>" + data[index].name  + "</h3>";
-		dataHtml+= "<p>" + data[index].image + "</p>";
+		dataHtml+= "<div class=\"col-3 wm-container\" id=\"" + data[index].id + "\">";
+		dataHtml+= "<h3 class=\"wm-container-text\">" + data[index].name  + "</h3>";
+		dataHtml+= "<p class=\"wm-container-text\">" + data[index].image + "</p>";
 		dataHtml+= "<p><span class=\"" + data[index].imageHtmlClass.htmlClass + " fa-2xl wm-container-icon\"></span></p>";
 		dataHtml+= "<p><span class=\"wm-container-status " + data[index].stateHtmlClass.htmlClass + "\">" + data[index].state.toUpperCase() + "</span></p>";
+		dataHtml+= "<h4><span class=\"wm-container-controls wm-start bi bi-play-circle\"></span><span class=\"wm-container-controls wm-stop bi bi-stop-circle\"></span><span class=\"wm-container-controls wm-restart bi bi-arrow-clockwise\"></span></h4>";
 		dataHtml+= "</div>";
 		elementsInRow++;
 		
 	}
 	dataHtml+= "</div>";	
 	document.getElementById("mainContent").innerHTML = dataHtml;
+	
+	//Enable controls
+	var startControls = document.getElementsByClassName("wm-start");
+	var stopControls = document.getElementsByClassName("wm-stop");
+	var restartControls = document.getElementsByClassName("wm-restart");
+
+	for (var index=0; index < startControls.length; index++) {
+		startControls[index].addEventListener("click", startContainer);
+	}
+
+	for (var index=0; index < stopControls.length; index++) {
+		stopControls[index].addEventListener("click", stopContainer);
+	}
+
+	for (var index=0; index < restartControls.length; index++) {
+	        restartControls[index].addEventListener("click", restartContainer);
+	}
 };
 
 //Call API to check if updates are availables

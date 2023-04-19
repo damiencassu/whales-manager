@@ -1,8 +1,21 @@
 //Call API to start a container
-function startContainer (eventTarget) {
+async function startContainer (eventTarget) {
 
-	eventTarget.currentTarget.className = "wm-container-controls-loading wm-start bi bi-play-circle";
+	//Send the POST request to Whales Manager API
+	var res = await fetch("/api/startContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
+        var data = await res.json();
+
+	//Stop the loading
+	eventTarget.srcElement.className = "wm-container-controls wm-start bi bi-play-circle";
 }	
+
+//Change the triggered start button display and triggers API call
+function loadStartContainer(eventTarget) {
+	
+	//Put the start button in glowing mode
+	eventTarget.srcElement.className = "wm-container-controls-loading wm-start bi bi-play-circle";
+	setTimeout(startContainer, "2000", eventTarget);
+}
 
 //Call API to stop a container
 function stopContainer (eventTarget) {
@@ -51,7 +64,7 @@ async function getContainersList () {
 	var restartControls = document.getElementsByClassName("wm-restart");
 
 	for (var index=0; index < startControls.length; index++) {
-		startControls[index].addEventListener("click", startContainer);
+		startControls[index].addEventListener("click", loadStartContainer);
 	}
 
 	for (var index=0; index < stopControls.length; index++) {

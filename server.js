@@ -106,7 +106,8 @@ if (!startupError) {
 
 	//Handle API requests
 	app.get("/api/containersList", function(req, res) {
-
+		
+		sysLogger.debug("server", "GET API Containers list handler");
 		//Call Docker API to get the raw list
 		DOCKER_API.getContainerList("true", DOCKER_API_VERSION, function(data){
 			//Create a parsed JSON list with css added info
@@ -118,12 +119,52 @@ if (!startupError) {
         	}, sysLogger);	
 	});
 
+	app.post("/api/startContainer/:id", function(req, res) {
+	
+		sysLogger.debug("server", "POST API Start Container handler");
+		//Retreive and sanitized the container ID
+		var result = CONTAINER.sanitizeContainerId(req.params.id, sysLogger);
+	 	sysLogger.debug("server", "POST API Start Container handler - sanitization result: " + result.safe);
+		
+		res.setHeader("Content-Type", "application/json");
+
+		if (result.safe) {
+
+			//Start the container
+			DOCKER_API.startContainer (result.id, DOCKER_API_VERSION, function(result){
+
+				//Send the result to frontend
+				//Started and already started are considered as success
+				if (!result.error){
+				 	sysLogger.debug("server", "POST API Start Container handler - start done");
+					res.send(result);
+				} else {
+					//Unknown container and internal server error are considered as error
+					if(result.unknown) {
+						sysLogger.error("server", "POST API Start Container handler - start failed - container unknown");
+					} else {
+						sysLogger.error("server", "POST API Start Container handler - start failed - internal server error");
+					}
+					res.status(500);
+					res.send(result);
+				}	
+
+			}, sysLogger);	
+		} else {
+		
+			sysLogger.error("server", "POST API Start Container handler - malformed container ID - start command aborted");
+			//Send the error to frontend
+			res.status(500);
+			res.send(result);
+		}
+	});
+
 	app.get("/api/checkUpdate", function(req, res) {
 
+		sysLogger.debug("server", "GET API Check update handler");
 		CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
 			//Create a parsed JSON containing the checkUpdate process result
 			//Send the result to the frontend
-			sysLogger.debug("server", "GET API Check update handler");
 			res.setHeader("Content-Type", "application/json");
                 	res.send(result);
 	

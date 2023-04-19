@@ -47,6 +47,32 @@ class Container {
 
 		return enhancedList;
 	}
+
+	/*
+	 * Take a raw container ID string and sanitize it
+	 * Return sanitized ID and safe equal true (or just safe equal false if the check/cleaning operation failed) 
+	 */
+	static sanitizeContainerId (containerId, logger) {
+
+		//A valid container ID must be an hex 64 characters string
+		var regex = /^[A-F0-9]{64}$/i;
+		if (regex.test(containerId)){
+
+			if (logger != undefined){
+				logger.debug("container", "Container ID (" + containerId + ") sanitization OK");
+			}
+
+			return {safe: true, id: containerId};
+
+		} else {
+
+			if (logger != undefined){
+				logger.debug("container", "Container ID (" + containerId + ") sanitization KO");
+			}
+			
+			return {safe: false};
+		}	
+	}	
 }
 
 

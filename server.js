@@ -166,6 +166,46 @@ if (!startupError) {
 			res.send(result);
 		}
 	});
+	
+	app.post("/api/stopContainer/:id", function(req, res) {
+	
+		sysLogger.debug("server", "POST API Stop Container handler");
+		//Retreive and sanitized the container ID
+		var result = CONTAINER.sanitizeContainerId(req.params.id, sysLogger);
+	 	sysLogger.debug("server", "POST API Stop Container handler - sanitization result: " + result.safe);
+		
+		res.setHeader("Content-Type", "application/json");
+
+		if (result.safe) {
+
+			//Stop the container
+			DOCKER_API.stopContainer (result.id, DOCKER_API_VERSION, function(result){
+
+				//Send the result to frontend
+				//Stopped and already stopped are considered as success
+				if (!result.error){
+				 	sysLogger.debug("server", "POST API Stop Container handler - stop done");
+					res.send(result);
+				} else {
+					//Unknown container and internal server error are considered as error
+					if(result.unknown) {
+						sysLogger.error("server", "POST API Stop Container handler - stop failed - container unknown");
+					} else {
+						sysLogger.error("server", "POST API Stop Container handler - stop failed - internal server error");
+					}
+					res.status(500);
+					res.send(result);
+				}	
+
+			}, sysLogger);	
+		} else {
+		
+			sysLogger.error("server", "POST API Stop Container handler - malformed container ID - stop command aborted");
+			//Send the error to frontend
+			res.status(500);
+			res.send(result);
+		}
+	});
 
 	app.get("/api/checkUpdate", function(req, res) {
 

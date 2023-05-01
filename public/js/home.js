@@ -3,7 +3,9 @@ async function startContainer (eventTarget) {
 
 	//Send the POST request to Whales Manager API
 	var res = await fetch("/api/startContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
-        var data = await res.json();
+	if (res.status == 200) {
+        	var data = await res.json();
+	} 
 
 	//Stop the loading
 	eventTarget.srcElement.className = "wm-container-controls wm-start bi bi-play-circle";
@@ -18,11 +20,24 @@ function loadStartContainer(eventTarget) {
 }
 
 //Call API to stop a container
-function stopContainer (eventTarget) {
+async function stopContainer (eventTarget) {
 
-        eventTarget.currentTarget.className = "wm-container-controls-loading wm-stop bi bi-stop-circle";
+	 //Send the POST request to Whales Manager API
+	var res = await fetch("/api/stopContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
+	if (res.status == 200) {
+	         var data = await res.json();
+         }
+         //Stop the loading
+         eventTarget.srcElement.className = "wm-container-controls wm-stop bi bi-stop-circle";
+
 }
 
+function loadStopContainer(eventTarget) {
+
+	//Put the stop button in glowing mode
+        eventTarget.srcElement.className = "wm-container-controls-loading wm-stop bi bi-stop-circle";
+        setTimeout(stopContainer, "2000", eventTarget);
+}
 
 //Call API to restart a container
 function restartContainer (eventTarget) {
@@ -69,7 +84,7 @@ async function getContainersList () {
 		}
 
 		for (var index=0; index < stopControls.length; index++) {
-			stopControls[index].addEventListener("click", stopContainer);
+			stopControls[index].addEventListener("click", loadStopContainer);
 		}
 
 		for (var index=0; index < restartControls.length; index++) {

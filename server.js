@@ -109,12 +109,20 @@ if (!startupError) {
 		
 		sysLogger.debug("server", "GET API Containers list handler");
 		//Call Docker API to get the raw list
-		DOCKER_API.getContainerList("true", DOCKER_API_VERSION, function(data){
-			//Create a parsed JSON list with css added info
-			//Send the result to the frontend
-			sysLogger.debug("server", "GET API Containers list handler - response data: " + data);
+		DOCKER_API.getContainerList("true", DOCKER_API_VERSION, function(error, data){
+
 			res.setHeader("Content-Type", "application/json");
-			res.send(CONTAINER.jsonToContainer(data, DOCKER_ICONS, DOCKER_STATUS, sysLogger));
+
+			if (!error){
+				//Create a parsed JSON list with css added info
+				//Send the result to the frontend
+				sysLogger.debug("server", "GET API Containers list handler - response data: " + data);
+				res.send(CONTAINER.jsonToContainer(data, DOCKER_ICONS, DOCKER_STATUS, sysLogger));
+			} else {
+				sysLogger.error("server", "GET API Container list handler - get list failed");
+			 	res.status(500);
+                         	res.send();
+			}
 
         	}, sysLogger);	
 	});

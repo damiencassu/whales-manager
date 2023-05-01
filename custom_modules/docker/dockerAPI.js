@@ -18,7 +18,9 @@ const DOCKER_API_START_CONTAINER_URI = "/containers/{id}/start";
 /*
  * all: retrieve all containers (TRUE) or only running ones (FALSE)
  * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
- * callback function which takes a data object containing the raw JSON list of containers returned by docker API 
+ * callback function which takes
+ * 	a boolean error value set to true if an error occured, false otherwise 
+ * 	a data object containing the raw JSON list of containers returned by docker API (if no error only) 
  */
 function getContainerList (all, dockerApiVersion, callback, logger){
 	
@@ -30,21 +32,53 @@ function getContainerList (all, dockerApiVersion, callback, logger){
         }
 
         HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getContainerListURL}, function(res){
-		var data = "";				
-		res.on("data", function(chunk){
-			data += chunk;
-		});
 
-		res.on("end", function() {
-			callback(data);
-		});
-
-		res.on("error", function(err){
-
+		if (res.statusCode == 200){
+			
 			if (logger != undefined){
-                		logger.error("dockerapi", "Call to Docker API failed on: " + getContainerListURL + " with: " + err.message);
-        		}
-		});
+                        	logger.debug("dockerapi", "Call to Docker API succeeded on: " + getContainerListURL);
+	                }
+
+			var data = "";				
+			res.on("data", function(chunk){
+				data += chunk;
+			});
+
+			res.on("end", function() {
+				callback(false, data);
+			});
+
+			res.on("error", function(err){
+
+				if (logger != undefined){
+                			logger.error("dockerapi", "Call to Docker API failed on: " + getContainerListURL + " with: " + err.message);
+        			}
+				callback(true);
+			});
+
+		} else {
+
+			var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+
+				if (logger != undefined){
+                                	logger.error("dockerapi", "Call to Docker API failed on: " + getContainerListURL + " with: " + data);
+                        	}
+                                callback(true);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getContainerListURL + " with: " + err.message);
+                                }
+				callback(true);
+                        });
+		}
 	});
 }
 

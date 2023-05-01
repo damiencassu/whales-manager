@@ -85,17 +85,22 @@ async function getContainersList () {
 //Call API to check if updates are availables
 async function checkUpdate () {
 	var res = await fetch("/api/checkUpdate");
-        var data = await res.json();
 	var dataHtml = "";
-	if (data.error) {
-		dataHtml = "<span> Update checker failed, try later </span>"; 
+	if (res.status == 200) {
+        	var data = await res.json();
+		if (data.error) {
+			dataHtml = "<span> Update checker failed, try later </span>"; 
 
-	} else if (data.update) {
-		dataHtml = "<span> Update available : " + data.latest + "</span>";
+		} else if (data.update) {
+			dataHtml = "<span> Update available : " + data.latest + "</span>";
 
+		} else {
+			dataHtml = "<span> No update available </span>"; 
+
+		}
 	} else {
-		dataHtml = "<span> No update available </span>"; 
-
+	
+		dataHtml = "<span> Update checker failed, try later </span>";
 	}
 
 	document.getElementById("wm-update-result").innerHTML = dataHtml;

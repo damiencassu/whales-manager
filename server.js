@@ -172,12 +172,19 @@ if (!startupError) {
 
 	});
 
-	//Send default HTTP 404 erreur page if unknown resource
+	//Handle 404 error page
+	app.get("/error", function(req, res) {
+
+		sysLogger.debug("server", "GET Error handler");
+		res.setHeader("Content-Type", "text/html");
+                res.status(404);
+                res.render("error.ejs");	
+	});
+
+	//Redirects requests to unknown resources to the generic 404 error page
 	app.use(function(req, res, next){
-    		sysLogger.debug("server", "Not found handler");
-    		res.setHeader("Content-Type", "text/html");
-    		res.status(404);
-    		res.render("error.ejs");
+    		sysLogger.debug("server", "Generic Not found handler");
+		res.redirect('/error');
 	});
 
 

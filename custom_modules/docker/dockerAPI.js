@@ -14,6 +14,7 @@ const DOCKER_API_BASE = "http://localhost/";
 const DOCKER_API_LIST_CONTAINER_URI = "/containers/json";
 const DOCKER_API_START_CONTAINER_URI = "/containers/{id}/start";
 const DOCKER_API_STOP_CONTAINER_URI = "/containers/{id}/stop";
+const DOCKER_API_RESTART_CONTAINER_URI ="/containers/{id}/restart";
 
 //Function which retrieves the list of containers managed by the local docker engine
 /*
@@ -111,8 +112,8 @@ function startContainer (id, dockerApiVersion, callback, logger){
 
 		} else if (res.statusCode == 204) {
 			//Container started
-                        if (logger != undefined){
-			        logger.debug("dockerapi", "Call to Docker API succeeded on: " + startContainerURL + " - container " + id + " started");
+                	if (logger != undefined){
+				logger.debug("dockerapi", "Call to Docker API succeeded on: " + startContainerURL + " - container " + id + " started");
 			}
 
 			callback({error: false, unknown: false, started: true});
@@ -192,8 +193,8 @@ function stopContainer (id, dockerApiVersion, callback, logger){
 
 		} else if (res.statusCode == 204) {
 			//Container stopped
-            		if (logger != undefined){
-			        logger.debug("dockerapi", "Call to Docker API succeeded on: " + stopContainerURL + " - container " + id + " stopped");
+			if (logger != undefined){
+				logger.debug("dockerapi", "Call to Docker API succeeded on: " + stopContainerURL + " - container " + id + " stopped");
 			}
 
 			callback({error: false, unknown: false, stopped: true});
@@ -245,6 +246,79 @@ function stopContainer (id, dockerApiVersion, callback, logger){
 	postRequest.end();
 }	
 
+//Function which restarts the container with the given ID
+/*
+ * id: sanitized ID of the container to restart
+ * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
+ * callback function which takes a result object containing the formated restart result
+ *  error: boolean telling if an error has been reported by Docker Server API - restarted is considered as success result
+ *  unknown : boolean telling if the targeted container is known by Docker Server
+ *  restarted : bollean telling if the targeted container has been restarted or not
+ */
+function restartContainer (id, dockerApiVersion, callback, logger){
+
+	var restartContainerURL = new URL.URL("/v" + dockerApiVersion + DOCKER_API_RESTART_CONTAINER_URI.replace("{id}", id), DOCKER_API_BASE);
+	if (logger != undefined){
+		logger.debug("dockerapi", "Calling Docker API on: " + restartContainerURL);
+	}
+	
+	var postRequest = HTTP.request({socketPath: DOCKER_UNIX_SOCKET, method: "POST",path: restartContainerURL}, function(res){
+
+		if (res.statusCode == 204) {
+			//Container restarted
+			if (logger != undefined){
+				logger.debug("dockerapi", "Call to Docker API succeeded on: " + restartContainerURL + " - container " + id + " restarted");
+			}
+
+			callback({error: false, unknown: false, restarted: true});
+
+		} else if (res.statusCode == 404) {
+			//Container not found
+			var data = "";
+			res.on("data", function(chunk){
+				data += chunk;
+			});
+
+			res.on("end", function() {
+				if (logger != undefined){
+				    logger.debug("dockerapi", "Call to Docker API succeeded on: " + restartContainerURL + " - container " + id + " not found");
+				}
+			   	callback({error: true, unknown: true, restarted: false});
+			});
+
+			res.on("error", function(err){
+	                if (logger != undefined){
+						logger.error("dockerapi", "Call to Docker API failed on: " + restartContainerURL + " with: " + err.message);
+					}
+				callback({error: true, unknown: false, restarted: false});
+			});
+
+		} else {
+			//Internal server error
+			var data = "";
+	                res.on("data", function(chunk){
+		                data += chunk;
+		        });
+
+		        res.on("end", function() {
+			        if (logger != undefined){
+				        logger.debug("dockerapi", "Call to Docker API failed on: " + restartContainerURL + " - internal error - " + JSON.parse(data).message);
+					}
+				callback({error: true, unknown: false, restarted: false});
+			});
+
+			res.on("error", function(err){
+				if (logger != undefined){
+					logger.error("dockerapi", "Call to Docker API failed on: " + restartContainerURL + " with: " + err.message);
+			        }
+				callback({error: true, unknown: false, restarted: false});
+			});
+		}	
+        });
+
+	postRequest.end();
+}	
+
 //Function which automatically detects docker server API version
 /*
  * dockerized: boolean set to true is process is dockerized, false if not
@@ -277,3 +351,4 @@ module.exports.getContainerList = getContainerList;
 module.exports.getDockerAPIVersion = getDockerAPIVersion;
 module.exports.startContainer = startContainer;
 module.exports.stopContainer = stopContainer;
+module.exports.restartContainer = restartContainer;

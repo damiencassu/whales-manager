@@ -40,9 +40,23 @@ function loadStopContainer(eventTarget) {
 }
 
 //Call API to restart a container
-function restartContainer (eventTarget) {
+async function restartContainer (eventTarget) {
 
-	eventTarget.currentTarget.className = "wm-container-controls-loading wm-restart bi bi-arrow-clockwise";
+	//Send the POST request to Whales Manager API
+	var res = await fetch("/api/restartContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
+	if (res.status == 200) {
+		var data = await res.json();
+	}
+	//Stop the loading
+	eventTarget.srcElement.className = "wm-container-controls wm-restart bi bi-arrow-clockwise";
+}
+
+//Call API to restart a container
+function loadRestartContainer (eventTarget) {
+
+	//Put the restart button in glowing mode
+	eventTarget.srcElement.className = "wm-container-controls-loading wm-restart bi bi-arrow-clockwise";
+        setTimeout(restartContainer, "2000", eventTarget);
 }
 
 
@@ -88,7 +102,7 @@ async function getContainersList () {
 		}
 
 		for (var index=0; index < restartControls.length; index++) {
-	        	restartControls[index].addEventListener("click", restartContainer);
+	        	restartControls[index].addEventListener("click", loadRestartContainer);
 		}
 
 	} else {

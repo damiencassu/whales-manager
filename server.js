@@ -33,7 +33,7 @@ if (APP_CONFIG != undefined) {
 	}
 } else {
 	sysLogger.warn("server", "No config file detected, applying default values");
-        sysLogger.warn("server", "Debug level set to INFO (default)");
+	sysLogger.warn("server", "Debug level set to INFO (default)");
 }
 
 //Other program constants
@@ -42,7 +42,7 @@ var startupError = false;
 const APP_PACKAGE_JSON = CORE.getAppPackageJson(sysLogger);
 if (APP_PACKAGE_JSON == undefined) {
 	startupError = true;
-        sysLogger.fatal("server", "No package.json file detected or file corrupted, exiting ...");
+	sysLogger.fatal("server", "No package.json file detected or file corrupted, exiting ...");
 }
 
 const APP_VERSION = CORE.getAppVersion(APP_PACKAGE_JSON, sysLogger);
@@ -54,13 +54,13 @@ if (APP_PACKAGE_JSON != undefined && APP_VERSION == undefined) {
 const APP_REPO_URL = CORE.getAppRepoUrl(APP_PACKAGE_JSON, sysLogger);
 if (APP_PACKAGE_JSON != undefined && APP_REPO_URL == undefined) {
 	startupError = true;
-        sysLogger.fatal("server", "No repository URL property found in package.json, exiting ...");
+	sysLogger.fatal("server", "No repository URL property found in package.json, exiting ...");
 }
 
 const APP_PORT = CORE.getAppPort(APP_PACKAGE_JSON, sysLogger);
 if (APP_PACKAGE_JSON != undefined && APP_PORT == undefined){
 	startupError = true;
-        sysLogger.fatal("server", "No app port property found in package.json, exiting ...");
+	sysLogger.fatal("server", "No app port property found in package.json, exiting ...");
 }
 
 const DOCKERIZED = CORE.isDockerized(sysLogger);
@@ -68,19 +68,19 @@ const DOCKERIZED = CORE.isDockerized(sysLogger);
 const DOCKER_STATUS = CORE.loadPropertyFile("./properties/dockerStatusDB.json", sysLogger);
 if (DOCKER_STATUS == undefined) {
 	startupError = true;
-        sysLogger.fatal("server", "No dockerStatusDB.json file detected or file corrupted, exiting ...");
+	sysLogger.fatal("server", "No dockerStatusDB.json file detected or file corrupted, exiting ...");
 }
 
 const DOCKER_ICONS = CORE.loadPropertyFile("./properties/dockerIconsDB.json", sysLogger);
 if (DOCKER_ICONS == undefined) {
-        startupError = true;
-        sysLogger.fatal("server", "No dockerIconsDB.json file detected or file corrupted, exiting ...");
+	startupError = true;
+	sysLogger.fatal("server", "No dockerIconsDB.json file detected or file corrupted, exiting ...");
 }
 
 const DOCKER_API_VERSION = DOCKER_API.getDockerAPIVersion(DOCKERIZED, sysLogger);
 if (DOCKER_API_VERSION == undefined) {
 	startupError = true;
-        sysLogger.fatal("server", "No Docker Server API version detected, exiting ...");
+	sysLogger.fatal("server", "No Docker Server API version detected, exiting ...");
 }
 
 if (!startupError) {
@@ -201,6 +201,46 @@ if (!startupError) {
 		} else {
 		
 			sysLogger.error("server", "POST API Stop Container handler - malformed container ID - stop command aborted");
+			//Send the error to frontend
+			res.status(500);
+			res.send(result);
+		}
+	});
+	
+	app.post("/api/restartContainer/:id", function(req, res) {
+	
+		sysLogger.debug("server", "POST API Restart Container handler");
+		//Retreive and sanitized the container ID
+		var result = CONTAINER.sanitizeContainerId(req.params.id, sysLogger);
+	 	sysLogger.debug("server", "POST API Restart Container handler - sanitization result: " + result.safe);
+		
+		res.setHeader("Content-Type", "application/json");
+
+		if (result.safe) {
+
+			//Restart the container
+			DOCKER_API.restartContainer (result.id, DOCKER_API_VERSION, function(result){
+
+				//Send the result to frontend
+				//Restarted is considered as success
+				if (!result.error){
+				 	sysLogger.debug("server", "POST API Restart Container handler - restart done");
+					res.send(result);
+				} else {
+					//Unknown container and internal server error are considered as error
+					if(result.unknown) {
+						sysLogger.error("server", "POST API Restart Container handler - restart failed - container unknown");
+					} else {
+						sysLogger.error("server", "POST API Restart Container handler - restart failed - internal server error");
+					}
+					res.status(500);
+					res.send(result);
+				}	
+
+			}, sysLogger);	
+		} else {
+		
+			sysLogger.error("server", "POST API Restart Container handler - malformed container ID - restart command aborted");
 			//Send the error to frontend
 			res.status(500);
 			res.send(result);

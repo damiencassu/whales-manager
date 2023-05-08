@@ -117,7 +117,7 @@ if (!startupError) {
 				//Create a parsed JSON list with css added info
 				//Send the result to the frontend
 				sysLogger.debug("server", "GET API Containers list handler - response data: " + data);
-				res.send(CONTAINER.jsonToContainer(data, DOCKER_ICONS, DOCKER_STATUS, sysLogger));
+				res.send(CONTAINER.jsonToContainers(data, DOCKER_ICONS, DOCKER_STATUS, sysLogger));
 			} else {
 				sysLogger.error("server", "GET API Container list handler - get list failed");
 			 	res.status(500);
@@ -125,6 +125,41 @@ if (!startupError) {
 			}
 
         	}, sysLogger);	
+	});
+
+	app.get("/api/containerInfo/:id", function(req, res) {	
+
+		sysLogger.debug("server", "GET API Container info handler");
+		//Retreive and sanitized the container ID
+		var result = CONTAINER.sanitizeContainerId(req.params.id, sysLogger);
+		sysLogger.debug("server", "GET API Container info handler - sanitization result: " + result.safe);
+		
+		res.setHeader("Content-Type", "application/json");
+		
+		if (result.safe) {
+			//Call Docker API to get the raw container	
+			DOCKER_API.getContainerInfo(result.id, DOCKER_API_VERSION, function(error, data){
+				if (!error){
+					//Create a parsed JSON with css added info
+					//Send the result to the frontend
+					sysLogger.debug("server", "GET API Container info handler - response data: " + data);
+					res.send(CONTAINER.jsonToContainer(data, DOCKER_ICONS, DOCKER_STATUS, sysLogger));
+				} else {
+					sysLogger.error("server", "GET API Container info handler - get info failed");
+					res.status(500);
+					res.send();
+				}
+
+			}, sysLogger);
+
+		} else {
+
+			sysLogger.error("server", "GET API Container Info handler - malformed container ID - command aborted");
+                        //Send the error to frontend
+                        res.status(500);
+                        res.send(result);
+		}
+
 	});
 
 	app.post("/api/startContainer/:id", function(req, res) {

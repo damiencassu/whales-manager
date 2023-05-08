@@ -1,3 +1,18 @@
+//Call API to retrieve Container info
+async function getContainerInfo (containerId) {
+
+	//Send the GET request to Whales Manager API
+	var res = await fetch("/api/containerInfo/"+ containerId);
+        if (res.status == 200) {
+
+                var data = await res.json();
+		return data;
+        } else {
+		return undefined;
+	}
+}
+
+
 //Call API to start a container
 async function startContainer (eventTarget) {
 
@@ -5,6 +20,15 @@ async function startContainer (eventTarget) {
 	var res = await fetch("/api/startContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
 	if (res.status == 200) {
         	var data = await res.json();
+		//If container started sucessfully, then refresh its displayed status
+		if (!data.error && data.started){
+			var container = await getContainerInfo(eventTarget.srcElement.parentNode.parentNode.id);
+			if (container != undefined){
+				var state = eventTarget.srcElement.parentNode.parentNode.querySelectorAll(".wm-container-status")[0];
+				state.className = "wm-container-status "+ container.stateHtmlClass.htmlClass;
+				state.innerHTML = container.state.toUpperCase();
+			}
+		}
 	} 
 
 	//Stop the loading
@@ -25,8 +49,18 @@ async function stopContainer (eventTarget) {
 	 //Send the POST request to Whales Manager API
 	var res = await fetch("/api/stopContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
 	if (res.status == 200) {
-	         var data = await res.json();
+	        var data = await res.json();
+		//If container stopped sucessfully, then refresh its displayed status
+		if (!data.error && data.stopped){
+                        var container = await getContainerInfo(eventTarget.srcElement.parentNode.parentNode.id);
+                        if (container != undefined){
+                                var state = eventTarget.srcElement.parentNode.parentNode.querySelectorAll(".wm-container-status")[0];
+                                state.className = "wm-container-status "+ container.stateHtmlClass.htmlClass;
+                                state.innerHTML = container.state.toUpperCase();
+                        }
+                }
          }
+
          //Stop the loading
          eventTarget.srcElement.className = "wm-container-controls wm-stop bi bi-stop-circle";
 
@@ -46,7 +80,17 @@ async function restartContainer (eventTarget) {
 	var res = await fetch("/api/restartContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
 	if (res.status == 200) {
 		var data = await res.json();
+		//If container restarted sucessfully, then refresh its displayed status
+		if (!data.error && data.restarted){
+                        var container = await getContainerInfo(eventTarget.srcElement.parentNode.parentNode.id);
+                        if (container != undefined){
+                                var state = eventTarget.srcElement.parentNode.parentNode.querySelectorAll(".wm-container-status")[0];
+                                state.className = "wm-container-status "+ container.stateHtmlClass.htmlClass;
+                                state.innerHTML = container.state.toUpperCase();
+                        }
+                }
 	}
+
 	//Stop the loading
 	eventTarget.srcElement.className = "wm-container-controls wm-restart bi bi-arrow-clockwise";
 }

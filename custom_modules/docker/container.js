@@ -18,13 +18,39 @@ class Container {
 		this.imageHtmlClass = imageHtmlClass;
 		this.state = state
 		this.stateHtmlClass = stateHtmlClass;
-	}	 
+	}
+
+	/*
+ 	* Take a raw JSON from dockerAPI and creates a Container
+	* IconsDB and StatusDB properties must be provided
+ 	*/	
+	 
+	static jsonToContainer (jsonRaw, iconsDB, stateDB, logger){
+	
+		var rawContainer = JSON.parse(jsonRaw);
+		var currentIcon = "";
+		if (iconsDB[rawContainer.Image.split(/[:\/]/)[0]] == undefined){
+			currentIcon = iconsDB.default;
+		} else {
+			currentIcon = iconsDB[rawContainer.Image.split(/[:\/]/)[0]];
+		}
+
+		var newContainer = new Container(rawContainer.Id, rawContainer.Name.split("/")[1], rawContainer.Config.Image, currentIcon, rawContainer.State.Status, stateDB[rawContainer.State.Status]);
+
+		if (logger != undefined){
+                        logger.debug("container", "Converting Json to container");
+                }
+
+		return newContainer;
+	}
+
+
 
 	/*
  	 * Take a raw JSON formatted list from dockerAPI and creates a Container list
 	 * IconsDB and StatusDB properties must be provided
 	 */
-	static jsonToContainer (jsonRaw, iconsDB, stateDB, logger){
+	static jsonToContainers (jsonRaw, iconsDB, stateDB, logger){
 		
 		var rawList = JSON.parse(jsonRaw);
 		var enhancedList = [];
@@ -42,7 +68,7 @@ class Container {
 		}
 
 		if (logger != undefined){
-                        logger.debug("container", "Converting Json to container");
+                        logger.debug("container", "Converting Json to a list of Containers");
                 }
 
 		return enhancedList;

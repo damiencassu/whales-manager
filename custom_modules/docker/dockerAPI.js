@@ -15,6 +15,7 @@ const DOCKER_API_LIST_CONTAINER_URI = "/containers/json";
 const DOCKER_API_START_CONTAINER_URI = "/containers/{id}/start";
 const DOCKER_API_STOP_CONTAINER_URI = "/containers/{id}/stop";
 const DOCKER_API_RESTART_CONTAINER_URI ="/containers/{id}/restart";
+const DOCKER_API_INFO_CONTAINER_URI = "/containers/{id}/json";
 
 //Function which retrieves the list of containers managed by the local docker engine
 /*
@@ -82,6 +83,73 @@ function getContainerList (all, dockerApiVersion, callback, logger){
                         });
 		}
 	});
+}
+
+
+//Function which retrieves the detailed information of the container with the given ID
+/*
+ * id: sanitized ID of the container to retrieve info from
+ * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
+ * callback function which takes
+ * 	a boolean error value set to true if an error occured, false otherwise
+ * 	a data object containing the raw JSON container returned by docker API (if no error only)
+ */
+function getContainerInfo (id, dockerApiVersion, callback, logger){
+
+	var getContainerInfoURL = new URL.URL("/v" + dockerApiVersion + DOCKER_API_INFO_CONTAINER_URI.replace("{id}", id), DOCKER_API_BASE);
+        if (logger != undefined){
+                logger.debug("dockerapi", "Calling Docker API on: " + getContainerInfoURL);
+        }
+
+	HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getContainerInfoURL}, function(res){
+
+                if (res.statusCode == 200){
+
+                        if (logger != undefined){
+                                logger.debug("dockerapi", "Call to Docker API succeeded on: " + getContainerInfoURL);
+                        }
+
+                        var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+                                callback(false, data);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getContainerInfoURL + " with: " + err.message);
+                                }
+                                callback(true);
+                        });
+
+                } else {
+
+                        var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getContainerInfoURL + " with: " + data);
+                                }
+                                callback(true);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getContainerInfoURL + " with: " + err.message);
+                                }
+                                callback(true);
+                        });
+                }
+        });
 }
 
 //Function which starts the container with the given ID
@@ -352,3 +420,4 @@ module.exports.getDockerAPIVersion = getDockerAPIVersion;
 module.exports.startContainer = startContainer;
 module.exports.stopContainer = stopContainer;
 module.exports.restartContainer = restartContainer;
+module.exports.getContainerInfo = getContainerInfo;

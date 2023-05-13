@@ -110,3 +110,6 @@ dist
 
 # Conf files
 conf/
+
+# Certs files
+certs/

@@ -12,11 +12,23 @@ const LOG_DIR = "logs";
 // Conf related constants
 const CONF_DIR = "conf";
 
+//Cert related constants
+const CERTS_DIR = "certs";
+
 //Create local logs directory if needed
 if (!FS.existsSync(PATH.join(__dirname, LOG_DIR))){
         FS.mkdirSync(PATH.join(__dirname, LOG_DIR));
 }
 
+//Create local conf directory if needed
+if (!FS.existsSync(PATH.join(__dirname, CONF_DIR))){
+        FS.mkdirSync(PATH.join(__dirname, CONF_DIR));
+}
+
+//Create local certs directory if needed
+if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR))){
+	FS.mkdirSync(PATH.join(__dirname, CERTS_DIR));
+}
 
 //Deploy file templates if needed - mandatory in dockerized setups
 if (!FS.existsSync(PATH.join(__dirname, CONF_DIR, TEMPLATE_CONF))) {

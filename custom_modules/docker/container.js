@@ -18,13 +18,39 @@ class Container {
 		this.imageHtmlClass = imageHtmlClass;
 		this.state = state
 		this.stateHtmlClass = stateHtmlClass;
-	}	 
+	}
+
+	/*
+ 	* Take a raw JSON from dockerAPI and creates a Container
+	* IconsDB and StatusDB properties must be provided
+ 	*/	
+	 
+	static jsonToContainer (jsonRaw, iconsDB, stateDB, logger){
+	
+		var rawContainer = JSON.parse(jsonRaw);
+		var currentIcon = "";
+		if (iconsDB[rawContainer.Image.split(/[:\/]/)[0]] == undefined){
+			currentIcon = iconsDB.default;
+		} else {
+			currentIcon = iconsDB[rawContainer.Image.split(/[:\/]/)[0]];
+		}
+
+		var newContainer = new Container(rawContainer.Id, rawContainer.Name.split("/")[1], rawContainer.Config.Image, currentIcon, rawContainer.State.Status, stateDB[rawContainer.State.Status]);
+
+		if (logger != undefined){
+                        logger.debug("container", "Converting Json to container");
+                }
+
+		return newContainer;
+	}
+
+
 
 	/*
  	 * Take a raw JSON formatted list from dockerAPI and creates a Container list
 	 * IconsDB and StatusDB properties must be provided
 	 */
-	static jsonToContainer (jsonRaw, iconsDB, stateDB, logger){
+	static jsonToContainers (jsonRaw, iconsDB, stateDB, logger){
 		
 		var rawList = JSON.parse(jsonRaw);
 		var enhancedList = [];
@@ -42,11 +68,37 @@ class Container {
 		}
 
 		if (logger != undefined){
-                        logger.debug("container", "Converting Json to container");
+                        logger.debug("container", "Converting Json to a list of Containers");
                 }
 
 		return enhancedList;
 	}
+
+	/*
+	 * Take a raw container ID string and sanitize it
+	 * Return sanitized ID and safe equal true (or just safe equal false if the check/cleaning operation failed) 
+	 */
+	static sanitizeContainerId (containerId, logger) {
+
+		//A valid container ID must be an hex 64 characters string
+		var regex = /^[A-F0-9]{64}$/i;
+		if (regex.test(containerId)){
+
+			if (logger != undefined){
+				logger.debug("container", "Container ID (" + containerId + ") sanitization OK");
+			}
+
+			return {safe: true, id: containerId};
+
+		} else {
+
+			if (logger != undefined){
+				logger.debug("container", "Container ID (" + containerId + ") sanitization KO");
+			}
+			
+			return {safe: false};
+		}	
+	}	
 }
 
 

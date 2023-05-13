@@ -9,7 +9,18 @@
 }
 
 .wm-container h3 {
-	border-bottom: 1px solid #ffc107
+	border-bottom: 1px solid #ffc107;
+}
+
+.wm-container h4 {
+	border-top: 1px solid #ffc107;
+	padding-top: 0.5rem!important;
+}
+
+.wm-container-text {
+	overflow: hidden;
+        white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .wm-container * {
@@ -30,6 +41,28 @@
 
 .wm-container-icon {
 	color: #ffc107 ;
+}
+
+.wm-container-controls {
+	margin-right: 0.5rem!important;
+        margin-left: 0.5rem!important;
+	display:inline-flex;
+	justify-content:center;
+	align-items:center;
+}
+
+.wm-container-controls:hover {
+        color: #ffdb4d;
+}
+
+.wm-container-controls-loading {
+	margin-right: 0.5rem!important;
+	margin-left: 0.5rem!important;
+	border-radius: 50%;
+	display:inline-flex;
+        justify-content:center;
+        align-items:center;
+	animation: glowing 1300ms infinite;
 }
 
 .wm-about-popup-header {
@@ -72,7 +105,6 @@
     	background-color: currentColor;
     	border-radius: 50%;
     	opacity: 0;
-    	-webkit-animation: 0.75s linear infinite spinner-grow; /* Compatibility for Safari */
 	animation: 0.75s linear infinite spinner-grow;
 	animation-delay:
 }
@@ -125,19 +157,19 @@
  	border-top: 16px solid #ffc107;
  	width: 120px;
  	height: 120px;
-  	-webkit-animation: spin 2s linear infinite; /* Compatibility for Safari */
   	animation: spin 2s linear infinite;
 }
 
-/* Compatibility for Safari */
-@-webkit-keyframes spin {
-	0% { -webkit-transform: rotate(0deg); }
- 	100% { -webkit-transform: rotate(360deg); }
-}
 
 @keyframes spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
+}
+
+@keyframes glowing {
+	0% { color: #ffdb4d; box-shadow: 0 0 3px #ffdb4d; }
+	50% { color: #ffc107; box-shadow: 0 0 10px #ffc107; }
+	100% { color: #ffdb4d; box-shadow: 0 0 3px #ffdb4d; }
 }
 
 li * {

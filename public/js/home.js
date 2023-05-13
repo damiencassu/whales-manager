@@ -1,44 +1,179 @@
+//Call API to retrieve Container info
+async function getContainerInfo (containerId) {
+
+	//Send the GET request to Whales Manager API
+	var res = await fetch("/api/containerInfo/"+ containerId);
+        if (res.status == 200) {
+
+                var data = await res.json();
+		return data;
+        } else {
+		return undefined;
+	}
+}
+
+
+//Call API to start a container
+async function startContainer (eventTarget) {
+
+	//Send the POST request to Whales Manager API
+	var res = await fetch("/api/startContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
+	if (res.status == 200) {
+        	var data = await res.json();
+		//If container started sucessfully, then refresh its displayed status
+		if (!data.error && data.started){
+			var container = await getContainerInfo(eventTarget.srcElement.parentNode.parentNode.id);
+			if (container != undefined){
+				var state = eventTarget.srcElement.parentNode.parentNode.querySelectorAll(".wm-container-status")[0];
+				state.className = "wm-container-status "+ container.stateHtmlClass.htmlClass;
+				state.innerHTML = container.state.toUpperCase();
+			}
+		}
+	} 
+
+	//Stop the loading
+	eventTarget.srcElement.className = "wm-container-controls wm-start bi bi-play-circle";
+}	
+
+//Change the triggered start button display and triggers API call
+function loadStartContainer(eventTarget) {
+	
+	//Put the start button in glowing mode
+	eventTarget.srcElement.className = "wm-container-controls-loading wm-start bi bi-play-circle";
+	setTimeout(startContainer, "2000", eventTarget);
+}
+
+//Call API to stop a container
+async function stopContainer (eventTarget) {
+
+	 //Send the POST request to Whales Manager API
+	var res = await fetch("/api/stopContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
+	if (res.status == 200) {
+	        var data = await res.json();
+		//If container stopped sucessfully, then refresh its displayed status
+		if (!data.error && data.stopped){
+                        var container = await getContainerInfo(eventTarget.srcElement.parentNode.parentNode.id);
+                        if (container != undefined){
+                                var state = eventTarget.srcElement.parentNode.parentNode.querySelectorAll(".wm-container-status")[0];
+                                state.className = "wm-container-status "+ container.stateHtmlClass.htmlClass;
+                                state.innerHTML = container.state.toUpperCase();
+                        }
+                }
+         }
+
+         //Stop the loading
+         eventTarget.srcElement.className = "wm-container-controls wm-stop bi bi-stop-circle";
+
+}
+
+function loadStopContainer(eventTarget) {
+
+	//Put the stop button in glowing mode
+        eventTarget.srcElement.className = "wm-container-controls-loading wm-stop bi bi-stop-circle";
+        setTimeout(stopContainer, "2000", eventTarget);
+}
+
+//Call API to restart a container
+async function restartContainer (eventTarget) {
+
+	//Send the POST request to Whales Manager API
+	var res = await fetch("/api/restartContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
+	if (res.status == 200) {
+		var data = await res.json();
+		//If container restarted sucessfully, then refresh its displayed status
+		if (!data.error && data.restarted){
+                        var container = await getContainerInfo(eventTarget.srcElement.parentNode.parentNode.id);
+                        if (container != undefined){
+                                var state = eventTarget.srcElement.parentNode.parentNode.querySelectorAll(".wm-container-status")[0];
+                                state.className = "wm-container-status "+ container.stateHtmlClass.htmlClass;
+                                state.innerHTML = container.state.toUpperCase();
+                        }
+                }
+	}
+
+	//Stop the loading
+	eventTarget.srcElement.className = "wm-container-controls wm-restart bi bi-arrow-clockwise";
+}
+
+//Call API to restart a container
+function loadRestartContainer (eventTarget) {
+
+	//Put the restart button in glowing mode
+	eventTarget.srcElement.className = "wm-container-controls-loading wm-restart bi bi-arrow-clockwise";
+        setTimeout(restartContainer, "2000", eventTarget);
+}
+
+
 //Call API to get the containers list and update frontend accordingly
 async function getContainersList () {
 	var res = await fetch("/api/containersList");
-	var data = await res.json();
+	if (res.status == 200) {
+		var data = await res.json();
 
-	var dataHtml = "<div class=\"row\">";
-	var elementsInRow = 0;
-	for (var index=0; index < data.length; index++) {
-		if (elementsInRow >= 3) {
+		var dataHtml = "<div class=\"row\">";
+		var elementsInRow = 0;
+		for (var index=0; index < data.length; index++) {
+			if (elementsInRow >= 3) {
+				dataHtml+= "</div>";
+                        	dataHtml += "<div class=\"row\">";
+                        	elementsInRow = 0;
+			}
+		
+			dataHtml+= "<div class=\"col-3 wm-container\" id=\"" + data[index].id + "\">";
+			dataHtml+= "<h3 class=\"wm-container-text\">" + data[index].name  + "</h3>";
+			dataHtml+= "<p class=\"wm-container-text\">" + data[index].image + "</p>";
+			dataHtml+= "<p><span class=\"" + data[index].imageHtmlClass.htmlClass + " fa-2xl wm-container-icon\"></span></p>";
+			dataHtml+= "<p><span class=\"wm-container-status " + data[index].stateHtmlClass.htmlClass + "\">" + data[index].state.toUpperCase() + "</span></p>";
+			dataHtml+= "<h4><span class=\"wm-container-controls wm-start bi bi-play-circle\"></span><span class=\"wm-container-controls wm-stop bi bi-stop-circle\"></span><span class=\"wm-container-controls wm-restart bi bi-arrow-clockwise\"></span></h4>";
 			dataHtml+= "</div>";
-                        dataHtml += "<div class=\"row\">";
-                        elementsInRow = 0;
+			elementsInRow++;
+		
 		}
-		
-		dataHtml+= "<div class=\"col-3 wm-container\">";
-		dataHtml+= "<h3>" + data[index].name  + "</h3>";
-		dataHtml+= "<p>" + data[index].image + "</p>";
-		dataHtml+= "<p><span class=\"" + data[index].imageHtmlClass.htmlClass + " fa-2xl wm-container-icon\"></span></p>";
-		dataHtml+= "<p><span class=\"wm-container-status " + data[index].stateHtmlClass.htmlClass + "\">" + data[index].state.toUpperCase() + "</span></p>";
-		dataHtml+= "</div>";
-		elementsInRow++;
-		
+		dataHtml+= "</div>";	
+		document.getElementById("mainContent").innerHTML = dataHtml;
+	
+		//Enable controls
+		var startControls = document.getElementsByClassName("wm-start");
+		var stopControls = document.getElementsByClassName("wm-stop");
+		var restartControls = document.getElementsByClassName("wm-restart");
+
+		for (var index=0; index < startControls.length; index++) {
+			startControls[index].addEventListener("click", loadStartContainer);
+		}
+
+		for (var index=0; index < stopControls.length; index++) {
+			stopControls[index].addEventListener("click", loadStopContainer);
+		}
+
+		for (var index=0; index < restartControls.length; index++) {
+	        	restartControls[index].addEventListener("click", loadRestartContainer);
+		}
+
+	} else {
+		var errorHtml = "<div><p>Failed to retrieve container list - please retry</p></div>"; 
+		document.getElementById("mainContent").innerHTML = errorHtml;
 	}
-	dataHtml+= "</div>";	
-	document.getElementById("mainContent").innerHTML = dataHtml;
 };
 
 //Call API to check if updates are availables
 async function checkUpdate () {
 	var res = await fetch("/api/checkUpdate");
-        var data = await res.json();
 	var dataHtml = "";
-	if (data.error) {
-		dataHtml = "<span> Update checker failed, try later </span>"; 
+	if (res.status == 200) {
+        	var data = await res.json();
+		if (data.error) {
+			dataHtml = "<span> Update checker failed, try later </span>"; 
 
-	} else if (data.update) {
-		dataHtml = "<span> Update available : " + data.latest + "</span>";
+		} else if (data.update) {
+			dataHtml = "<span> Update available : " + data.latest + "</span>";
 
+		} else {
+			dataHtml = "<span> No update available </span>"; 
+
+		}
 	} else {
-		dataHtml = "<span> No update available </span>"; 
-
+	
+		dataHtml = "<span> Update checker failed, try later </span>";
 	}
 
 	document.getElementById("wm-update-result").innerHTML = dataHtml;

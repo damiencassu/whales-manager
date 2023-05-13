@@ -5,4 +5,5 @@ RUN npm install
 EXPOSE 8888
 VOLUME /home/node/app/logs
 VOLUME /home/node/app/conf
+VOLUME /home/node/app/certs
 CMD npm start

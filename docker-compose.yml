@@ -16,6 +16,7 @@ services:
     volumes:
       - ./logs:/home/node/app/logs
       - ./conf:/home/node/app/conf
+      - ./certs:/home/node/app/certs
       - /var/run/docker.sock:/var/run/docker.sock
     command: "npm start"
 ...

@@ -1,5 +1,7 @@
 //Generic module loading
 const EXPRESS = require("express");
+const HTTP = require("node:http");
+const HTTPS = require("node:https");
 const LOGGER_HTTP = require("morgan");
 const FS = require("node:fs");
 const PATH = require("node:path");
@@ -16,28 +18,70 @@ const LOG_FORMAT_HTTP = "common";
 const LOG_FILE_ACCESS = "access.log";
 const LOG_FILE_SYS = "server.log";
 
-
 //Create Logger for system events
 var sysLogger = new LOGGER_SYS("info", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));
 sysLogger.info("server", "########## Whales Manager starting... ##########");
+
+//TLS options for HTTPS handling
+var tlsOptions = {enable: false, key: "", cert: ""};
+
+//Other program constants
+var startupError = false;
 
 //Loading APP Config values
 const APP_CONFIG = CORE.loadConfigFile("./conf/server.json");
 if (APP_CONFIG != undefined) {
 	sysLogger.info("server", "Config file detected and successfully loaded, applying custom values");
+
+	//Checking config for debug level
 	if (APP_CONFIG.debugLevel != undefined) {
 		sysLogger.logLevel = APP_CONFIG.debugLevel;
 		sysLogger.info("server", "Debug level set to " + sysLogger.logLevel.toUpperCase() + " (custom)");
 	} else {
 		sysLogger.warn("server", "No debug level property found in server.json, debug level set to INFO (default)");
 	}
+
+	//Checking config for https
+	if (APP_CONFIG.https != undefined) {
+		if (APP_CONFIG.https.enabled){
+			tlsOptions.enable = true;
+			sysLogger.info("server", "HTTPS mode enabled (custom)");
+			if (APP_CONFIG.https.key != undefined && APP_CONFIG.https.cert != undefined) {
+				
+				//Try to load private key for https
+				try {
+
+        				tlsOptions.key = FS.readFileSync(APP_CONFIG.https.key);
+					sysLogger.debug("server", "HTTPS private key successfully loaded for " +  APP_CONFIG.https.key);
+				} catch (err) {
+					startupError = true;
+					sysLogger.fatal("server", "HTTPS private key loading failed for " +  APP_CONFIG.https.key + ", exiting ...");
+				}
+
+				//Try to load public key for https
+				try {
+
+                                        tlsOptions.cert = FS.readFileSync(APP_CONFIG.https.cert);
+					sysLogger.debug("server", "HTTPS public key successfully loaded for " +  APP_CONFIG.https.cert);
+                                } catch (err) {
+                                        startupError = true;
+                                        sysLogger.fatal("server", "HTTPS public key loading failed for " +  APP_CONFIG.https.cert + ", exiting ...");
+                                }
+			} else {
+				startupError = true;
+				sysLogger.fatal("server", "No key and/or cert property found in server.json, exiting ...");				
+			}
+		} else {
+			sysLogger.info("server", "HTTPS mode disabled (custom)");
+		}	
+	} else {
+		sysLogger.warn("server", "No https property found in server.json, https disabled (default)");
+	}
 } else {
 	sysLogger.warn("server", "No config file detected, applying default values");
 	sysLogger.warn("server", "Debug level set to INFO (default)");
+	sysLogger.warn("server", "Https disabled (default)");
 }
-
-//Other program constants
-var startupError = false;
 
 const APP_PACKAGE_JSON = CORE.getAppPackageJson(sysLogger);
 if (APP_PACKAGE_JSON == undefined) {
@@ -304,14 +348,19 @@ if (!startupError) {
                 res.render("error.ejs");	
 	});
 
-	//Redirects requests to unknown resources to the generic 404 error page
+	//Redirect requests to unknown resources to the generic 404 error page
 	app.use(function(req, res, next){
     		sysLogger.debug("server", "Generic Not found handler");
 		res.redirect('/error');
 	});
 
 
-	app.listen(APP_PORT);
+	//Create HTTP(S) server
+	if (tlsOptions.enable) {
+		HTTPS.createServer({key: tlsOptions.key, cert: tlsOptions.cert},app).listen(APP_PORT);
+	} else {
+		HTTP.createServer(app).listen(APP_PORT);
+	} 
 	sysLogger.info("server", "Whales Manager v" + APP_VERSION + " started");
 
 } else {

@@ -9,6 +9,7 @@ const PATH = require("node:path");
 //Custom module loading
 const DOCKER_API = require("./custom_modules/docker/dockerAPI");
 const CORE = require("./custom_modules/core/core");
+const CRYPTO = require("./custom_modules/core/crypto");
 const CONTAINER = require("./custom_modules/docker/container");
 const LOGGER_SYS = require("./custom_modules/core/logger");
 
@@ -41,9 +42,18 @@ if (APP_CONFIG != undefined) {
 		sysLogger.warn("server", "No debug level property found in server.json, debug level set to INFO (default)");
 	}
 
+	//Checking - Initializing crypto environment
+	if (CRYPTO.checkOpensslIsInstalled(sysLogger)){
+	
+		console.log("OpenSSL OK");
+	} else {
+		startupError = true;
+		sysLogger.fatal("server", "Openssl is not installed, exiting ...");
+	}
+
 	//Checking config for https
 	if (APP_CONFIG.https != undefined) {
-		if (APP_CONFIG.https.enabled){
+		if (APP_CONFIG.https.enabled == true){
 			tlsOptions.enable = true;
 			sysLogger.info("server", "HTTPS mode enabled (custom)");
 			if (APP_CONFIG.https.key != undefined && APP_CONFIG.https.cert != undefined) {
@@ -82,6 +92,8 @@ if (APP_CONFIG != undefined) {
 	sysLogger.warn("server", "Debug level set to INFO (default)");
 	sysLogger.warn("server", "Https disabled (default)");
 }
+
+
 
 const APP_PACKAGE_JSON = CORE.getAppPackageJson(sysLogger);
 if (APP_PACKAGE_JSON == undefined) {

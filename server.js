@@ -25,6 +25,9 @@ const CERTS_MANAGER_DIR = "manager";
 const CERTS_MANAGER_CA_PRIV = "ca.key";
 const CERTS_MANAGER_CA_PUB = "ca.crt";
 const CERTS_MANAGER_CA_VALIDITY = 3650;
+const CERTS_MANAGER_CERT_PRIV = "servweb.key";
+const CERTS_MANAGER_CERT_PUB = "serverweb.crt";
+const CERTS_MANAGER_CERT_VALIDITY = 365;
 
 //Create Logger for system events
 var sysLogger = new LOGGER_SYS("info", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));
@@ -52,7 +55,7 @@ if (APP_CONFIG != undefined) {
 	//Checking - Initializing crypto environment
 	if (CRYPTO.checkOpensslIsInstalled(sysLogger)){
 		
-		//Check if the Whales Manager Self-Signed CA exists
+		//Check if the Whales Manager Self-Signed CA exists, create it if not
 		if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PRIV)) || !FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PUB))){
 		
 			sysLogger.warn("server", "No Whales Manager CA found, a new one is going to be generated, please wait...");
@@ -67,8 +70,18 @@ if (APP_CONFIG != undefined) {
 			}
 			
 		} else {
-			console.log("CA found");
+			sysLogger.debug("server", "A Whales Manager CA has been found");
 		}
+
+		//Check if Whales Manager CA delivered certificates are available, generate them if not
+		if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PRIV)) || !FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PUB)) || startupError){
+
+			//création des certifs
+			console.log("certificats à créer");
+
+		} else {
+			sysLogger.debug("server", "Whales Manager CA delivered certificates have been found");
+		}	
 
 	} else {
 		startupError = true;

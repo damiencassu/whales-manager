@@ -4,7 +4,7 @@ const PATH = require("node:path");
 
 // Template related constants
 const TEMPLATE_DIR = "templates";
-const TEMPLATE_CONF = "server.json.template";
+const TEMPLATE_FILES = ["server.json.template", "ca.cfg.template", "servweb.cfg.template"];
 
 // Logs related constants
 const LOG_DIR = "logs";
@@ -43,7 +43,10 @@ if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_CUSTOM_DIR))){
 }
 
 
-//Deploy file templates if needed - mandatory in dockerized setups
-if (!FS.existsSync(PATH.join(__dirname, CONF_DIR, TEMPLATE_CONF))) {
-	FS.copyFileSync(PATH.join(__dirname, TEMPLATE_DIR, CONF_DIR, TEMPLATE_CONF), PATH.join(__dirname, CONF_DIR, TEMPLATE_CONF));
+//Deploy file templates if not present in conf dir
+for ( var index=0; index < TEMPLATE_FILES.length; index++ ) {
+	
+	if (!FS.existsSync(PATH.join(__dirname, CONF_DIR, TEMPLATE_FILES[index].replace(/.template/g, '')))) {
+		FS.copyFileSync(PATH.join(__dirname, TEMPLATE_DIR, TEMPLATE_FILES[index]), PATH.join(__dirname, CONF_DIR, TEMPLATE_FILES[index].replace(/.template/g, '')));
+	}
 }

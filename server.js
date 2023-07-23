@@ -26,7 +26,7 @@ const CERTS_MANAGER_CA_PRIV = "ca.key";
 const CERTS_MANAGER_CA_PUB = "ca.crt";
 const CERTS_MANAGER_CA_VALIDITY = 3650;
 const CERTS_MANAGER_CERT_PRIV = "servweb.key";
-const CERTS_MANAGER_CERT_PUB = "serverweb.crt";
+const CERTS_MANAGER_CERT_PUB = "servweb.crt";
 const CERTS_MANAGER_CERT_VALIDITY = 365;
 
 //Create Logger for system events
@@ -74,13 +74,23 @@ if (APP_CONFIG != undefined) {
 		}
 
 		//Check if Whales Manager CA delivered certificates are available, generate them if not
-		if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PRIV)) || !FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PUB)) || startupError){
+		if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PRIV)) || !FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PUB)) && !startupError){
 
-			//création des certifs
-			console.log("certificats à créer");
+			sysLogger.warn("server", "No Whales Manager certificate found, a new one is going to be generated, please wait...");
+
+			if (CRYPTO.createCertificate(CERTS_MANAGER_CERT_VALIDITY, PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PRIV), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PUB), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PRIV), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PUB), sysLogger)){
+			
+				sysLogger.warn("server", "A new Whales Manager certificate has been generated");
+			} else {
+				
+				startupError = true;
+				sysLogger.fatal("server", "An error occurred when generating a new Whales Manager certificate, exiting ...");
+			}
 
 		} else {
-			sysLogger.debug("server", "Whales Manager CA delivered certificates have been found");
+			if (!startupError){
+				sysLogger.debug("server", "Whales Manager CA delivered certificates have been found");
+			}
 		}	
 
 	} else {
@@ -90,7 +100,7 @@ if (APP_CONFIG != undefined) {
 
 	//Checking config for https
 	if (APP_CONFIG.https != undefined) {
-		if (APP_CONFIG.https.enabled == true){
+		if (JSON.parse(APP_CONFIG.https.enabled)){
 			tlsOptions.enable = true;
 			sysLogger.info("server", "HTTPS mode enabled (custom)");
 			if (APP_CONFIG.https.key != undefined && APP_CONFIG.https.cert != undefined) {

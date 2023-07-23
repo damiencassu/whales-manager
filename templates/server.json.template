@@ -1,9 +1,8 @@
-//Template for server.json configuration file - remove this line and the trailing ".template" to load it with Whales Manager
 {
 	"debugLevel": "info",
 	"https": {
-		"enabled": "false",
-		"key": "certs/servweb.key",
-		"cert": "certs/servweb.crt"
+		"enabled": "true",
+		"key": "certs/manager/servweb.key",
+		"cert": "certs/manager/servweb.crt"
 	}
 }

@@ -7,6 +7,7 @@ const PATH = require("node:path");
 const CP = require("node:child_process");
 
 //Program constants
+const CACERT_CONF_FILE = "conf/cacert.cfg";
 const CA_CONF_FILE = "conf/ca.cfg";
 const CERT_CONF_FILE = "conf/servweb.cfg";
 
@@ -39,6 +40,7 @@ function createPrivateKey(privKey){
  * caValidity: number of days the CA will be valid
  * caPrivKey: path where to store the CA private key
  * caPubKey: path where to store the CA public key
+ * Returns true if the operation succeed, false otherwise
  */
 function createSelfSignedCA(caValidity, caPrivKey, caPubKey, logger){
 
@@ -54,7 +56,7 @@ function createSelfSignedCA(caValidity, caPrivKey, caPubKey, logger){
 		if (logger != undefined){
 			logger.debug("crypto", "Generating a new CA public key in " + caPubKey);
 		}
-		CP.execSync("openssl req -config " + CA_CONF_FILE + " -new -x509 -days " + caValidity + " -key " + caPrivKey + " > " + caPubKey);
+		CP.execSync("openssl req -config " + CACERT_CONF_FILE + " -new -x509 -days " + caValidity + " -key " + caPrivKey + " > " + caPubKey);
 
 		return true;
 
@@ -84,17 +86,32 @@ function createCSR(certPrivKey, certSR, logger){
 
 }	
 
-//Create Certificate
+//Function which creates a new certificate signed by the specified CA based on a CSR 
+/*
+ * certValidity: number of days the certificate will be valid
+ * certPrivKey: path where to find the cert private key
+ * certPubKey: path where to store the cert public key
+ * caPrivKey: path where to find the signing CA private key
+ * caPubKey: path where to find the signing CA public key
+ * Returns true if the operation succeed, false otherwise
+ */
 function createCertificate(certValidity, certPrivKey, certPubKey, caPrivKey, caPubKey, logger){
 
-	//Certificate Private key and CSR generation
-	createCSR(certPrivKey, certPubKey.replace(/cert/g, 'csr'), logger);
+	try {
+		//Certificate Private key and CSR generation
+		createCSR(certPrivKey, certPubKey.replace(/crt/g, 'csr'), logger);
 	
-	//Certificate Signing Request signature
-	if (logger != undefined){
-		logger.debug("crypto", "Generating a new certificate in " + certPubKey + " by signing the CSR in " + certPubKey.replace(/cert/g, 'csr'));
+		//Certificate Signing Request signature
+		if (logger != undefined){
+			logger.debug("crypto", "Generating a new certificate in " + certPubKey + " by signing the CSR in " + certPubKey.replace(/crt/g, 'csr'));
+		}
+		CP.execSync("openssl ca -batch -config " + CA_CONF_FILE + " -in " + certPubKey.replace(/crt/g, 'csr') + " -out " + certPubKey + " 2>/dev/null" );
+	
+		return true;
+
+	} catch (err) {
+		return false;
 	}
-	CP.execSync("openssl x509 -extfile " + CERT_CONF_FILE + " -req -in " + certPubKey.replace(/cert/g, 'csr') + " -out " + certPubKey + " -CA " + caPubKey + " -CAkey " + caPrivKey + " -days " + certValidity); 
 
 }
 

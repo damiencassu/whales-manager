@@ -6,9 +6,6 @@ const PATH = require("node:path");
 const HTTPS = require("node:https");
 const URL = require("node:url");
 
-//Custom module loading
-const LOGGER_SYS = require("./logger");
-
 //Program constants
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/";
 const GITHUB_PACKAGE_LOCATION = "/main/package.json";

@@ -1,0 +1,8 @@
+{
+	"debugLevel": "info",
+	"https": {
+		"enabled": "true",
+		"key": "certs/manager/servweb.key",
+		"cert": "certs/manager/servweb.crt"
+	}
+}

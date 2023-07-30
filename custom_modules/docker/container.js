@@ -1,6 +1,3 @@
-//Custom module loading
-const LOGGER_SYS = require("../core/logger");
-
 //Class representing a container instance
 class Container {
 	/*

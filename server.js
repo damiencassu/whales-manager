@@ -9,6 +9,7 @@ const PATH = require("node:path");
 //Custom module loading
 const DOCKER_API = require("./custom_modules/docker/dockerAPI");
 const CORE = require("./custom_modules/core/core");
+const CRYPTO = require("./custom_modules/core/crypto");
 const CONTAINER = require("./custom_modules/docker/container");
 const LOGGER_SYS = require("./custom_modules/core/logger");
 
@@ -17,6 +18,16 @@ const LOG_DIR = "logs";
 const LOG_FORMAT_HTTP = "common";
 const LOG_FILE_ACCESS = "access.log";
 const LOG_FILE_SYS = "server.log";
+
+//Certs related constants
+const CERTS_DIR = "certs";
+const CERTS_MANAGER_DIR = "manager";
+const CERTS_MANAGER_CA_PRIV = "ca.key";
+const CERTS_MANAGER_CA_PUB = "ca.crt";
+const CERTS_MANAGER_CA_VALIDITY = 3650;
+const CERTS_MANAGER_CERT_PRIV = "servweb.key";
+const CERTS_MANAGER_CERT_PUB = "servweb.crt";
+const CERTS_MANAGER_CERT_VALIDITY = 365;
 
 //Create Logger for system events
 var sysLogger = new LOGGER_SYS("info", PATH.join(__dirname, LOG_DIR, LOG_FILE_SYS));
@@ -31,57 +42,109 @@ var startupError = false;
 //Loading APP Config values
 const APP_CONFIG = CORE.loadConfigFile("./conf/server.json");
 if (APP_CONFIG != undefined) {
-	sysLogger.info("server", "Config file detected and successfully loaded, applying custom values");
+	sysLogger.info("server", "Config file detected and successfully loaded, applying values");
 
 	//Checking config for debug level
 	if (APP_CONFIG.debugLevel != undefined) {
 		sysLogger.logLevel = APP_CONFIG.debugLevel;
-		sysLogger.info("server", "Debug level set to " + sysLogger.logLevel.toUpperCase() + " (custom)");
+		sysLogger.info("server", "Debug level set to " + sysLogger.logLevel.toUpperCase());
 	} else {
-		sysLogger.warn("server", "No debug level property found in server.json, debug level set to INFO (default)");
+		startupError = true;
+		sysLogger.fatal("server", "No debug level property found in server.json, exiting...");
+	}
+
+	//Checking - Initializing crypto environment
+	if (CRYPTO.checkOpensslIsInstalled(sysLogger)){
+		
+		//Check if the Whales Manager Self-Signed CA exists, create it if not
+		if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PRIV)) || !FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PUB))){
+		
+			sysLogger.warn("server", "No Whales Manager CA found, a new one is going to be generated, please wait...");
+			
+			if (CRYPTO.createSelfSignedCA(CERTS_MANAGER_CA_VALIDITY, PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PRIV), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PUB), sysLogger)){
+
+				sysLogger.warn("server", "A new Whales Manager CA has been generated");
+			} else {
+				
+				startupError = true;
+				sysLogger.fatal("server", "An error occurred when generating a new CA, exiting ...");
+			}
+			
+		} else {
+			sysLogger.debug("server", "A Whales Manager CA has been found");
+		}
+
+		//Check if Whales Manager CA delivered certificates are available, generate them if not
+		if (!FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PRIV)) || !FS.existsSync(PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PUB))){
+
+			sysLogger.warn("server", "No Whales Manager certificate found, a new one is going to be generated, please wait...");
+
+			if (CRYPTO.createCertificate(CERTS_MANAGER_CERT_VALIDITY, PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PRIV), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CERT_PUB), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PRIV), PATH.join(__dirname, CERTS_DIR, CERTS_MANAGER_DIR, CERTS_MANAGER_CA_PUB), sysLogger)){
+			
+				sysLogger.warn("server", "A new Whales Manager certificate has been generated");
+			} else {
+				
+				startupError = true;
+				sysLogger.fatal("server", "An error occurred when generating a new Whales Manager certificate, exiting ...");
+			}
+
+		} else {
+			sysLogger.debug("server", "Whales Manager CA delivered certificates have been found");
+		}	
+
+	} else {
+		startupError = true;
+		sysLogger.fatal("server", "Openssl is not installed, exiting ...");
 	}
 
 	//Checking config for https
-	if (APP_CONFIG.https != undefined) {
-		if (APP_CONFIG.https.enabled){
-			tlsOptions.enable = true;
-			sysLogger.info("server", "HTTPS mode enabled (custom)");
-			if (APP_CONFIG.https.key != undefined && APP_CONFIG.https.cert != undefined) {
+	if (APP_CONFIG.https != undefined){
+		if (APP_CONFIG.https.enabled != undefined){
+			if (JSON.parse(APP_CONFIG.https.enabled)){
+				tlsOptions.enable = true;
+				sysLogger.info("server", "HTTPS mode enabled (default)");
+				if (APP_CONFIG.https.key != undefined && APP_CONFIG.https.cert != undefined) {
 				
-				//Try to load private key for https
-				try {
+					//Try to load private key for https
+					try {
 
-        				tlsOptions.key = FS.readFileSync(APP_CONFIG.https.key);
-					sysLogger.debug("server", "HTTPS private key successfully loaded for " +  APP_CONFIG.https.key);
-				} catch (err) {
+        					tlsOptions.key = FS.readFileSync(APP_CONFIG.https.key);
+						sysLogger.debug("server", "HTTPS private key successfully loaded for " +  APP_CONFIG.https.key);
+					} catch (err) {
+						startupError = true;
+						sysLogger.fatal("server", "HTTPS private key loading failed for " +  APP_CONFIG.https.key + ", exiting ...");
+					}
+
+					//Try to load public key for https
+					try {
+
+                                        	tlsOptions.cert = FS.readFileSync(APP_CONFIG.https.cert);
+						sysLogger.debug("server", "HTTPS public key successfully loaded for " +  APP_CONFIG.https.cert);
+                                	} catch (err) {
+                                        	startupError = true;
+                                        	sysLogger.fatal("server", "HTTPS public key loading failed for " +  APP_CONFIG.https.cert + ", exiting ...");
+                                	}
+				} else {
 					startupError = true;
-					sysLogger.fatal("server", "HTTPS private key loading failed for " +  APP_CONFIG.https.key + ", exiting ...");
+					sysLogger.fatal("server", "No key and/or cert property found in server.json, exiting ...");				
 				}
-
-				//Try to load public key for https
-				try {
-
-                                        tlsOptions.cert = FS.readFileSync(APP_CONFIG.https.cert);
-					sysLogger.debug("server", "HTTPS public key successfully loaded for " +  APP_CONFIG.https.cert);
-                                } catch (err) {
-                                        startupError = true;
-                                        sysLogger.fatal("server", "HTTPS public key loading failed for " +  APP_CONFIG.https.cert + ", exiting ...");
-                                }
 			} else {
-				startupError = true;
-				sysLogger.fatal("server", "No key and/or cert property found in server.json, exiting ...");				
+				sysLogger.info("server", "HTTPS mode disabled (custom)");
 			}
 		} else {
-			sysLogger.info("server", "HTTPS mode disabled (custom)");
+			startupError = true;
+			sysLogger.fatal("server", "No https.enabled property found in server.json, exiting ..."); 
 		}	
 	} else {
-		sysLogger.warn("server", "No https property found in server.json, https disabled (default)");
+		startupError = true;
+		sysLogger.fatal("server", "No https property found in server.json, exiting...");
 	}
 } else {
-	sysLogger.warn("server", "No config file detected, applying default values");
-	sysLogger.warn("server", "Debug level set to INFO (default)");
-	sysLogger.warn("server", "Https disabled (default)");
+	startupError = true;
+	sysLogger.fatal("server", "No config file detected, exiting...");
 }
+
+
 
 const APP_PACKAGE_JSON = CORE.getAppPackageJson(sysLogger);
 if (APP_PACKAGE_JSON == undefined) {

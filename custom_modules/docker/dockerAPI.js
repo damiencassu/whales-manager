@@ -5,9 +5,6 @@ const HTTP = require("node:http");
 const URL = require("node:url");
 const CP = require("node:child_process");
 
-//Custom module loading
-const LOGGER_SYS = require("../core/logger");
-
 //Program constants
 const DOCKER_UNIX_SOCKET = "/var/run/docker.sock";
 const DOCKER_API_BASE = "http://localhost/";

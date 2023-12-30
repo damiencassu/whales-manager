@@ -13,6 +13,8 @@ const DOCKER_API_START_CONTAINER_URI = "/containers/{id}/start";
 const DOCKER_API_STOP_CONTAINER_URI = "/containers/{id}/stop";
 const DOCKER_API_RESTART_CONTAINER_URI ="/containers/{id}/restart";
 const DOCKER_API_INFO_CONTAINER_URI = "/containers/{id}/json";
+const DOCKER_API_SYSTEM_VERSION_URI = "/info";
+const DOCKER_API_ENGINE_VERSION_URI = "/version";
 
 //Function which retrieves the list of containers managed by the local docker engine
 /*
@@ -411,6 +413,154 @@ function getDockerAPIVersion (dockerized, logger){
 	}
 }
 
+
+//Function which retrieves the basic system informations of the host hosting the docker engine and running Whales Manager
+/*
+ * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
+ * callback function which takes
+ * 	a boolean error value set to true if an error occured, false otherwise 
+ * 	a data object containing the raw JSON list of system values returned by docker API (if no error only) 
+ */
+function getSystemInfo (dockerApiVersion, callback, logger){
+	
+	var getSystemInfoURL = new URL.URL("/v" + dockerApiVersion + DOCKER_API_SYSTEM_VERSION_URI, DOCKER_API_BASE);
+
+	if (logger != undefined){
+        	logger.debug("dockerapi", "Calling Docker API on: " + getSystemInfoURL);
+        }
+
+        HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getSystemInfoURL}, function(res){
+
+		if (res.statusCode == 200){
+			
+			if (logger != undefined){
+                        	logger.debug("dockerapi", "Call to Docker API succeeded on: " + getSystemInfoURL);
+	                }
+
+			var data = "";				
+			res.on("data", function(chunk){
+				data += chunk;
+			});
+
+			res.on("end", function() {
+				
+				var rawList = JSON.parse(data);
+				var systemInfosList = new Map();
+				systemInfosList.set("KernelVersion", rawList.KernelVersion);
+				systemInfosList.set("OperatingSystem", rawList.OperatingSystem);
+				systemInfosList.set("OSVersion", rawList.OSVersion);
+				systemInfosList.set("NCPU", rawList.NCPU);
+				systemInfosList.set("MemTotal", rawList.MemTotal);
+				systemInfosList.set("Architecture", rawList.Architecture);
+				callback(false, JSON.stringify(Object.fromEntries(systemInfosList)));
+			});
+
+			res.on("error", function(err){
+
+				if (logger != undefined){
+                			logger.error("dockerapi", "Call to Docker API failed on: " + getSystemInfoURL + " with: " + err.message);
+        			}
+				callback(true);
+			});
+
+		} else {
+
+			var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+
+				if (logger != undefined){
+                                	logger.error("dockerapi", "Call to Docker API failed on: " + getSystemInfoURL + " with: " + data);
+                        	}
+                                callback(true);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getSystemInfoURL + " with: " + err.message);
+                                }
+				callback(true);
+                        });
+		}
+	});
+}
+
+
+//Function which retrieves informations of the docker engine used by Whales Manager
+/*
+ * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
+ * callback function which takes
+ *      a boolean error value set to true if an error occured, false otherwise
+ *      a data object containing the raw JSON list of engine values returned by docker API (if no error only)
+ */
+function getEngineInfo (dockerApiVersion, callback, logger){
+
+        var getEngineInfoURL = new URL.URL("/v" + dockerApiVersion + DOCKER_API_ENGINE_VERSION_URI, DOCKER_API_BASE);
+
+        if (logger != undefined){
+                logger.debug("dockerapi", "Calling Docker API on: " + getEngineInfoURL);
+        }
+
+        HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getEngineInfoURL}, function(res){
+
+                if (res.statusCode == 200){
+
+                        if (logger != undefined){
+                                logger.debug("dockerapi", "Call to Docker API succeeded on: " + getEngineInfoURL);
+                        }
+
+                        var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+
+                                var rawList = JSON.parse(data);
+                                var engineInfosList = new Map();
+                                engineInfosList.set("Version", rawList.Version);
+                                engineInfosList.set("MaxApiVersion", rawList.ApiVersion);
+				engineInfosList.set("UsedApiVersion", dockerApiVersion);
+                                callback(false, JSON.stringify(Object.fromEntries(engineInfosList)));
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getEngineInfoURL + " with: " + err.message);
+                                }
+                                callback(true);
+                        });
+
+                } else {
+                        var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getEngineInfoURL + " with: " + data);
+                                }
+                                callback(true);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getEngineInfoURL + " with: " + err.message);
+                                }
+                                callback(true);
+                        });
+                }
+        });
+}
+
 //Export section
 module.exports.getContainerList = getContainerList;
 module.exports.getDockerAPIVersion = getDockerAPIVersion;
@@ -418,3 +568,5 @@ module.exports.startContainer = startContainer;
 module.exports.stopContainer = stopContainer;
 module.exports.restartContainer = restartContainer;
 module.exports.getContainerInfo = getContainerInfo;
+module.exports.getSystemInfo = getSystemInfo; 
+module.exports.getEngineInfo = getEngineInfo;

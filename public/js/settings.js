@@ -1,35 +1,4 @@
-//Call API to get system infos
-async function getSystemInfos() {
-	var res = await fetch("/api/systemInfo");
-	var dataHtml = "";
-	if (res.status == 200) {
-        	var data = await res.json();
-		dataHtml = "<span>" + data + "</span>";
-
-	} else {
-	
-		dataHtml = "<span> Fail to retreive system infos, try later </span>";
-	}
-
-	document.getElementById("mainContent").innerHTML = dataHtml;
-}
-
-//Call API to get engine infos
-async function getEngineInfos() {
-        var res = await fetch("/api/engineInfo");
-        var dataHtml = "";
-        if (res.status == 200) {
-                var data = await res.json();
-                dataHtml = "<span>" + data + "</span>";
-		
-        } else {
-
-                dataHtml = "<span> Fail to retreive engine infos, try later </span>";
-        }
-
-        document.getElementById("mainContent").innerHTML += dataHtml;
-}
-
+//Call API to retrieve system infos and docker engine version
 async function getSystemEngineInfos(){
 	
 	var resSI = await fetch("/api/systemInfo");
@@ -61,6 +30,37 @@ async function getSystemEngineInfos(){
 
 }
 
+//Call API to retrieve the list of images installed on the host
+async function getImageList() {
+
+	var resIL = await fetch("/api/imagesList");
+	var dataHtml = "";
+	if (resIL.status == 200) {
+		var data = await resIL.json();
+		var time = "";
+
+		dataHtml = "<table class=\"table\"><thead class=\"table-dark\"><tr><th scope=\"col\">Image Tag</th><th scope=\"col\">Repository Digest ID</th><th scope=\"col\">Image Creation Date</th></tr></thead><tbody>";
+
+		for (var index=0; index < data.length; index++){
+			
+			time = new Date(data[index].created * 1000);	
+			dataHtml += "<tr class=\"wm-image-row\"><th scope=\"row\">" + data[index].repoTag + "</th><td>" + data[index].repoId + "</td><td>" + time.toLocaleString() + "</td></tr>";
+
+		}
+		
+		dataHtml += "</tbody></table>";
+	
+	} else {
+
+		dataHtml = "<span> Fail to retreive image list, try later </span>";
+
+	}
+
+	document.getElementById("mainContent").innerHTML = dataHtml;
+
+}
+
+
 //Displays loadbar
 function setLoadBar() {
 	
@@ -75,5 +75,13 @@ function loadDockerSystemEngineInfos() {
 	setTimeout(getSystemEngineInfos, "2500");
 }
 
+//Displays loadbar and triggers API call to get list of installed images
+function loadDockerImageList() {
+
+        setLoadBar();
+        setTimeout(getImageList, "2500");
+}
+
 //Docker System-Engine button function
 document.getElementById("docker-system-engine").addEventListener("click", loadDockerSystemEngineInfos);
+document.getElementById("docker-installed-images").addEventListener("click", loadDockerImageList);

@@ -53,6 +53,10 @@
 	margin-left: auto;
 }
 
+.wm-image-row {
+	border-bottom: 1px solid #ffc107;
+}
+
 @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }

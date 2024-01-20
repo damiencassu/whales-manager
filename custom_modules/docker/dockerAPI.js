@@ -15,6 +15,7 @@ const DOCKER_API_RESTART_CONTAINER_URI ="/containers/{id}/restart";
 const DOCKER_API_INFO_CONTAINER_URI = "/containers/{id}/json";
 const DOCKER_API_SYSTEM_VERSION_URI = "/info";
 const DOCKER_API_ENGINE_VERSION_URI = "/version";
+const DOCKER_API_LIST_IMAGE_URI = "/images/json";
 
 //Function which retrieves the list of containers managed by the local docker engine
 /*
@@ -84,6 +85,71 @@ function getContainerList (all, dockerApiVersion, callback, logger){
 	});
 }
 
+//Function which retrieves the list of images available on the local docker engine
+/*
+ * dockerApiVersion: the version of the docker server api to connect to using X.X.X format
+ * callback function which takes
+ *      a boolean error value set to true if an error occured, false otherwise
+ *      a data object containing the raw JSON list of images returned by docker API (if no error only)
+ */
+function getImageList (dockerApiVersion, callback, logger){
+
+        var getImageListURL = new URL.URL("/v" + dockerApiVersion + DOCKER_API_LIST_IMAGE_URI, DOCKER_API_BASE);
+
+        if (logger != undefined){
+                logger.debug("dockerapi", "Calling Docker API on: " + getImageListURL);
+        }
+
+        HTTP.get({socketPath: DOCKER_UNIX_SOCKET, path: getImageListURL}, function(res){
+
+                if (res.statusCode == 200){
+
+                        if (logger != undefined){
+                                logger.debug("dockerapi", "Call to Docker API succeeded on: " + getImageListURL);
+                        }
+
+                        var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+                                callback(false, data);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getImageListURL + " with: " + err.message);
+                                }
+                                callback(true);
+                        });
+
+                } else {
+
+                        var data = "";
+                        res.on("data", function(chunk){
+                                data += chunk;
+                        });
+
+                        res.on("end", function() {
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getImageListURL + " with: " + data);
+                                }
+                                callback(true);
+                        });
+
+                        res.on("error", function(err){
+
+                                if (logger != undefined){
+                                        logger.error("dockerapi", "Call to Docker API failed on: " + getImageListURL + " with: " + err.message);
+                                }
+                                callback(true);
+                        });
+                }
+        });
+}
 
 //Function which retrieves the detailed information of the container with the given ID
 /*
@@ -563,6 +629,7 @@ function getEngineInfo (dockerApiVersion, callback, logger){
 
 //Export section
 module.exports.getContainerList = getContainerList;
+module.exports.getImageList = getImageList;
 module.exports.getDockerAPIVersion = getDockerAPIVersion;
 module.exports.startContainer = startContainer;
 module.exports.stopContainer = stopContainer;

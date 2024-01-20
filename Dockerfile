@@ -1,4 +1,4 @@
-FROM node:19.6
+FROM node:latest
 WORKDIR /home/node/app
 RUN git clone https://github.com/damiencassu/whales-manager.git ./
 RUN npm install

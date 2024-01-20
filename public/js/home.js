@@ -110,12 +110,12 @@ async function getContainersList () {
 	if (res.status == 200) {
 		var data = await res.json();
 
-		var dataHtml = "<div class=\"row\">";
+		var dataHtml = "<div class=\"row d-flex justify-content-evenly\">";
 		var elementsInRow = 0;
 		for (var index=0; index < data.length; index++) {
 			if (elementsInRow >= 3) {
 				dataHtml+= "</div>";
-                        	dataHtml += "<div class=\"row\">";
+                        	dataHtml += "<div class=\"row d-flex justify-content-evenly\">";
                         	elementsInRow = 0;
 			}
 		

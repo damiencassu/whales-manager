@@ -11,6 +11,7 @@ const DOCKER_API = require("./custom_modules/docker/dockerAPI");
 const CORE = require("./custom_modules/core/core");
 const CRYPTO = require("./custom_modules/core/crypto");
 const CONTAINER = require("./custom_modules/docker/container");
+const IMAGE = require("./custom_modules/docker/image");
 const LOGGER_SYS = require("./custom_modules/core/logger");
 
 //Log related program constants
@@ -211,6 +212,15 @@ if (!startupError) {
 		res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED});
 	});
 
+	//Handle settings page requests
+        app.get("/settings", function(req,res) {
+                sysLogger.debug("server", "GET Settings page handler");
+                res.setHeader("Content-Type", "text/html");
+                res.render("settings.ejs");
+
+        });
+
+
 	//Handle API requests
 	app.get("/api/containersList", function(req, res) {
 		
@@ -226,13 +236,35 @@ if (!startupError) {
 				sysLogger.debug("server", "GET API Containers list handler - response data: " + data);
 				res.send(CONTAINER.jsonToContainers(data, DOCKER_ICONS, DOCKER_STATUS, sysLogger));
 			} else {
-				sysLogger.error("server", "GET API Container list handler - get list failed");
+				sysLogger.error("server", "GET API Containers list handler - get list failed");
 			 	res.status(500);
                          	res.send();
 			}
 
         	}, sysLogger);	
 	});
+
+	app.get("/api/imagesList", function(req, res) {
+
+                sysLogger.debug("server", "GET API Images list handler");
+                //Call Docker API to get the raw list
+                DOCKER_API.getImageList(DOCKER_API_VERSION, function(error, data){
+
+                        res.setHeader("Content-Type", "application/json");
+
+                        if (!error){
+                                //Create a parsed JSON cleaned list
+                                //Send the result to the frontend
+                                sysLogger.debug("server", "GET API Images list handler - response data: " + data);
+                                res.send(IMAGE.jsonToImages(data, sysLogger));
+                        } else {
+                                sysLogger.error("server", "GET API Images list handler - get list failed");
+                                res.status(500);
+                                res.send();
+                        }
+
+                }, sysLogger);
+        });
 
 	app.get("/api/containerInfo/:id", function(req, res) {	
 
@@ -401,6 +433,53 @@ if (!startupError) {
 		}, sysLogger);
 
 	});
+
+
+	app.get("/api/systemInfo", function(req, res) {
+
+		sysLogger.debug("server", "GET API System infos handler");
+		//Call Docker API to get the system infos
+                DOCKER_API.getSystemInfo(DOCKER_API_VERSION, function(error, data){
+
+                        res.setHeader("Content-Type", "application/json");
+
+                        if (!error){
+                                //Send the result to the frontend
+                                sysLogger.debug("server", "GET API System infos handler - response data: " + data);
+                                res.send(data);
+                        } else {
+                                sysLogger.error("server", "GET API System infos handler - get list failed");
+                                res.status(500);
+                                res.send();
+                        }
+
+                }, sysLogger);
+
+
+        });
+
+	app.get("/api/engineInfo", function(req, res) {
+
+                sysLogger.debug("server", "GET API Engine infos handler");
+                //Call Docker API to get the engine infos
+                DOCKER_API.getEngineInfo(DOCKER_API_VERSION, function(error, data){
+
+                        res.setHeader("Content-Type", "application/json");
+
+                        if (!error){
+                                //Send the result to the frontend
+                                sysLogger.debug("server", "GET API Engine infos handler - response data: " + data);
+                                res.send(data);
+                        } else {
+                                sysLogger.error("server", "GET API Engine infos handler - get list failed");
+                                res.status(500);
+                                res.send();
+                        }
+
+                }, sysLogger);
+
+
+        });
 
 	//Handle 404 error page
 	app.get("/error", function(req, res) {

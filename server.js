@@ -2,7 +2,6 @@
 const EXPRESS = require("express");
 const HTTP = require("node:http");
 const HTTPS = require("node:https");
-const LOGGER_HTTP = require("morgan");
 const FS = require("node:fs");
 const PATH = require("node:path");
 
@@ -13,6 +12,7 @@ const CRYPTO = require("./custom_modules/core/crypto");
 const CONTAINER = require("./custom_modules/docker/container");
 const IMAGE = require("./custom_modules/docker/image");
 const LOGGER_SYS = require("./custom_modules/core/logger");
+const LOGGER_HTTP = require("./custom_modules/core/httpLogger");
 
 //Log related program constants
 const LOG_DIR = "logs";
@@ -203,8 +203,8 @@ if (!startupError) {
 	app.use(EXPRESS.static("public"));
 
 	//Enabling HTTP LOGGER middleware
-	app.use(LOGGER_HTTP(LOG_FORMAT_HTTP, {stream: accessLogStream}));
-
+	app.use(LOGGER_HTTP(accessLogStream));
+		
 	//Handle homepage requests
 	app.get("/", function(req,res) {
 		sysLogger.debug("server", "GET Home page handler");

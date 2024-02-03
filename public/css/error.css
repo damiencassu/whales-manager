@@ -6,6 +6,8 @@
 	border-radius: 0.25rem!important;
 	background-color: #343a40!important;
 	color: #fff!important;
+	border-color: #ffc107!important;
+        border: 1px solid;
 }
 
 .wm-navbar-brand {
@@ -23,4 +25,9 @@
 
 main {
 	margin-top: 100px;
+}
+
+body {
+        background-color: #2c3034;
+
 }

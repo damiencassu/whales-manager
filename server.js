@@ -220,6 +220,14 @@ if (!startupError) {
 
         });
 
+	//Handle login page requests
+        app.get("/login", function(req,res) {
+                sysLogger.debug("server", "GET Login page handler");
+                res.setHeader("Content-Type", "text/html");
+                res.render("login.ejs");
+
+        });
+	
 
 	//Handle API requests
 	app.get("/api/containersList", function(req, res) {

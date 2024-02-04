@@ -17,7 +17,7 @@
 
 }
 
-.wm-login form h4 {
+.wm-login div h4 {
 	margin-top: 0.5rem!important;
 	padding-top: 0.5rem!important;
 }
@@ -44,6 +44,24 @@
 
 #wm-login-button:focus {
 	box-shadow: none!important;
+}
+
+.wm-login-error {
+        text-align: center;
+        margin-top: 0.5rem!important;
+	color: #dc3545;
+
+}
+
+.wm-spinner-grow {
+    	width: 0.5rem;
+    	height: 0.5rem;
+    	vertical-align: -0.125em;
+    	background-color: currentColor;
+    	border-radius: 50%;
+    	opacity: 0;
+	animation: 0.75s linear infinite spinner-grow;
+	animation-delay:
 }
 
 main {

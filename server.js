@@ -227,7 +227,22 @@ if (!startupError) {
                 res.render("login.ejs");
 
         });
-	
+
+	//Handle login credentials post requests
+        app.post("/login", function(req,res) {
+                
+		sysLogger.debug("server", "POST Login credentials handler");
+		res.setHeader("Content-Type", "application/json");
+
+		if (false){	
+			var data = new Object();
+			data.location = "/";
+                	res.send(data);
+		} else {
+			 res.status(401);
+                         res.send();
+		}
+        });	
 
 	//Handle API requests
 	app.get("/api/containersList", function(req, res) {

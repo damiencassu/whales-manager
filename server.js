@@ -13,6 +13,7 @@ const CONTAINER = require("./custom_modules/docker/container");
 const IMAGE = require("./custom_modules/docker/image");
 const LOGGER_SYS = require("./custom_modules/core/logger");
 const LOGGER_HTTP = require("./custom_modules/core/httpLogger");
+const NATIVE = require("./custom_modules/core/native");
 
 //Log related program constants
 const LOG_DIR = "logs";
@@ -36,6 +37,9 @@ sysLogger.info("server", "########## Whales Manager starting... ##########");
 
 //TLS options for HTTPS handling
 var tlsOptions = {enable: false, key: "", cert: ""};
+
+//Local users database
+var usersDB = [];
 
 //Other program constants
 var startupError = false;
@@ -140,6 +144,44 @@ if (APP_CONFIG != undefined) {
 		startupError = true;
 		sysLogger.fatal("server", "No https property found in server.json, exiting...");
 	}
+
+	//Checking for authentication configuration
+	if (APP_CONFIG.authentication != undefined){
+		if(APP_CONFIG.authentication.enabled != undefined && APP_CONFIG.authentication.type != undefined){
+
+			if(JSON.parse(APP_CONFIG.authentication.enabled) && APP_CONFIG.authentication.type == "native"){
+				
+				sysLogger.info("server", "Native authentication enabled (default)");
+
+				//Try to load local users database
+				usersDB = NATIVE.loadUsersFile("./conf/users.json", sysLogger);
+				
+				if (usersDB != undefined){
+					sysLogger.info("server", "Local users database loaded sucessfully");
+				} else {
+					startupError = true;
+		                        sysLogger.fatal("server", "Failed to load users database file, exiting...");
+				}
+
+			} else if (JSON.parse(APP_CONFIG.authentication.enabled) && APP_CONFIG.authentication.type != undefined) { 
+				
+				startupError = true;
+                               	sysLogger.fatal("server", "Unknown authentication type detected, exiting...");
+			}else {
+				
+				sysLogger.warn("server", "Authentication disabled (custom)");
+			}
+
+		} else {
+			startupError = true;
+                	sysLogger.fatal("server", "No authentication enable and/or no authentication type property found in server.json, exiting...");
+		}
+
+	} else {
+		startupError = true;
+                sysLogger.fatal("server", "No authentication property found in server.json, exiting...");
+	}
+
 } else {
 	startupError = true;
 	sysLogger.fatal("server", "No config file detected, exiting...");

@@ -1,4 +1,4 @@
-//The core module offers static funtions realted to server initial startup and running tasks
+//The core module offers static funtions related to server initial startup and running tasks
 
 //Generic module loading
 const FS = require("node:fs");

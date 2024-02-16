@@ -1,4 +1,4 @@
-//The crypto module offers static funtions realted to certificates generation and management
+//The crypto module offers static funtions related to certificates generation and management
 
 
 //Generic module loading

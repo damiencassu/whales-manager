@@ -244,6 +244,9 @@ if (!startupError) {
 	//Enabling EXPRESS STATIC middleware - handle css, js, fonts ...
 	app.use(EXPRESS.static("public"));
 
+	//Enabling application/json POST body parsing
+	app.use(EXPRESS.json());
+
 	//Enabling HTTP LOGGER middleware
 	app.use(LOGGER_HTTP(accessLogStream));
 		
@@ -276,13 +279,44 @@ if (!startupError) {
 		sysLogger.debug("server", "POST Login credentials handler");
 		res.setHeader("Content-Type", "application/json");
 
-		if (false){	
-			var data = new Object();
-			data.location = "/";
-                	res.send(data);
+		//Checking user input
+		if (req.body.id != undefined && req.body.pwd != undefined) {
+			
+			var resultId = NATIVE.sanitizeUserId(req.body.id, sysLogger);
+			var resultPwd = NATIVE.sanitizeUserPassword(req.body.pwd, sysLogger);
+			if (!resultId.safe || !resultPwd.safe){
+				sysLogger.debug("server", "Malformed or unauthorized credentials in post authentication request");
+				res.status(401);
+                         	res.send();
+			} else if (usersDB[resultId.id] == undefined) {
+				sysLogger.info("server", "User " + resultId.id + " unknown - authentication failed");
+                                res.status(401);
+                                res.send();
+			} else {
+				
+				//Hash inputed password and compare with one stored in DB
+				NATIVE.hashPassword(resultPwd.pwd, usersDB[resultId.id].salt, function(error, hashedPassword){
+
+					if (!error){
+					
+						if (hashedPassword == usersDB[resultId.id].hash){
+							sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
+							var data = new Object();
+                        				data.location = "/";
+                        				res.send(data);
+
+						} else {
+							sysLogger.info("server", "User " + resultId.id + " - authentication failed");
+							res.status(401);
+                         				res.send();
+						}
+					}
+				}, sysLogger);
+			}
 		} else {
-			 res.status(401);
-                         res.send();
+			sysLogger.debug("server", "Credentials missing in post authentication request");
+                        res.status(401);
+                        res.send();
 		}
         });	
 

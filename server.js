@@ -13,7 +13,8 @@ const CONTAINER = require("./custom_modules/docker/container");
 const IMAGE = require("./custom_modules/docker/image");
 const LOGGER_SYS = require("./custom_modules/core/logger");
 const LOGGER_HTTP = require("./custom_modules/core/httpLogger");
-const NATIVE = require("./custom_modules/core/native");
+const NATIVE = require("./custom_modules/auth/native");
+const COOKIE = require("./custom_modules/auth/cookie");
 
 //Log related program constants
 const LOG_DIR = "logs";
@@ -40,6 +41,9 @@ var tlsOptions = {enable: false, key: "", cert: ""};
 
 //Local users database
 var usersDB = [];
+
+//Global users sessions table
+var usersSessions = new Map();
 
 //Other program constants
 var startupError = false;
@@ -301,15 +305,39 @@ if (!startupError) {
 					
 						if (hashedPassword == usersDB[resultId.id].hash){
 							sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
-							var data = new Object();
-                        				data.location = "/";
-                        				res.send(data);
+
+							//Create a new cookie
+							var cookie = new COOKIE(req.hostname, tlsOptions.enable);
+							//Generate a new cookie value
+							COOKIE.generateCookieValue(function(error, cookieValue){
+								
+								if (!error){
+									//Assign the value to the cookie
+									cookie.value = cookieValue;
+									//Register the session
+		                                                        cookie.registerCookie(usersSessions, resultId.id, sysLogger);
+									//Set the cookie to the response
+									res.cookie(cookie.name, cookie.value, cookie.options);
+									//Send the cookie to user and redirect to home page
+									var data = new Object();
+                                                        		data.location = "/";
+                                                        		res.send(data);
+								} else {
+									sysLogger.error("server", "User " + resultId.id + " - cookie generation failed - authentication rejected");
+									res.status(401);
+                                                        		res.send();
+								}
+							}, sysLogger);
 
 						} else {
 							sysLogger.info("server", "User " + resultId.id + " - authentication failed");
 							res.status(401);
                          				res.send();
 						}
+					} else {
+						sysLogger.error("server", "User " + resultId.id + " - inputed password hash computation failed - authentication rejected");
+						res.status(401);
+                                                res.send();
 					}
 				}, sysLogger);
 			}

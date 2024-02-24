@@ -266,19 +266,31 @@ if (!startupError) {
 
 	//Handle login page requests
         app.get("/login", function(req,res) {
-                sysLogger.debug("server", "GET Login page handler");
-                res.setHeader("Content-Type", "text/html");
-                res.render("login.ejs");
+
+		sysLogger.debug("server", "GET Login page handler");
+
+		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+			sysLogger.debug("server", "Authentication disabled, skipping login page");
+			res.redirect("/");
+		} else {
+                	res.setHeader("Content-Type", "text/html");
+                	res.render("login.ejs");
+		}
         });
 
 	//Handle login credentials post requests
         app.post("/login", function(req,res) {
                 
 		sysLogger.debug("server", "POST Login credentials handler");
-		res.setHeader("Content-Type", "application/json");
-
+		
+		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+                        sysLogger.debug("server", "Authentication disabled, skipping login page post credential");
+                        res.redirect("/");
+		
 		//Checking user input
-		if (req.body.id != undefined && req.body.pwd != undefined) {
+		} else if (req.body.id != undefined && req.body.pwd != undefined) {
+
+			res.setHeader("Content-Type", "application/json");
 			
 			var resultId = NATIVE.sanitizeUserId(req.body.id, sysLogger);
 			var resultPwd = NATIVE.sanitizeUserPassword(req.body.pwd, sysLogger);
@@ -291,49 +303,57 @@ if (!startupError) {
                                 res.status(401);
                                 res.send();
 			} else {
-				
-				//Hash inputed password and compare with one stored in DB
-				NATIVE.hashPassword(resultPwd.pwd, usersDB[resultId.id].salt, function(error, hashedPassword){
+			
+				switch (APP_CONFIG.authentication.type) {
+  				case "native":
+					//Hash inputed password and compare with one stored in DB
+					NATIVE.hashPassword(resultPwd.pwd, usersDB[resultId.id].salt, function(error, hashedPassword){
 
-					if (!error){
+						if (!error){
 					
-						if (hashedPassword == usersDB[resultId.id].hash){
-							sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
+							if (hashedPassword == usersDB[resultId.id].hash){
+								sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
 
-							//Create a new cookie
-							var cookie = new COOKIE(WM_AUTH_COOKIE_NAME, req.hostname, tlsOptions.enable);
-							//Generate a new cookie value
-							COOKIE.generateCookieValue(function(error, cookieValue){
+								//Create a new cookie
+								var cookie = new COOKIE(WM_AUTH_COOKIE_NAME, req.hostname, tlsOptions.enable);
+								//Generate a new cookie value
+								COOKIE.generateCookieValue(function(error, cookieValue){
 								
-								if (!error){
-									//Assign the value to the cookie
-									cookie.value = cookieValue;
-									//Register the session
-		                                                        cookie.registerCookie(usersSessions, resultId.id, sysLogger);
-									//Set the cookie to the response
-									res.cookie(cookie.name, cookie.value, cookie.options);
-									//Send the cookie to user and redirect to home page
-									var data = new Object();
-                                                        		data.location = "/";
-                                                        		res.send(data);
-								} else {
-									sysLogger.error("server", "User " + resultId.id + " - cookie generation failed - authentication rejected");
-									res.status(401);
-                                                        		res.send();
-								}
-							}, sysLogger);
+									if (!error){
+										//Assign the value to the cookie
+										cookie.value = cookieValue;
+										//Register the session
+		                                                        	cookie.registerCookie(usersSessions, resultId.id, sysLogger);
+										//Set the cookie to the response
+										res.cookie(cookie.name, cookie.value, cookie.options);
+										//Send the cookie to user and redirect to home page
+										var data = new Object();
+                                                        			data.location = "/";
+                                                        			res.send(data);
+									} else {
+										sysLogger.error("server", "User " + resultId.id + " - cookie generation failed - authentication rejected");
+										res.status(401);
+                                                        			res.send();
+									}
+								}, sysLogger);
 
+							} else {
+								sysLogger.info("server", "User " + resultId.id + " - authentication failed");
+								res.status(401);
+                         					res.send();
+							}
 						} else {
-							sysLogger.info("server", "User " + resultId.id + " - authentication failed");
+							sysLogger.error("server", "User " + resultId.id + " - inputed password hash computation failed - authentication rejected");
 							res.status(401);
-                         				res.send();
+                                                	res.send();
 						}
-					} else {
-						sysLogger.error("server", "User " + resultId.id + " - inputed password hash computation failed - authentication rejected");
-						res.status(401);
-                                                res.send();
-					}
-				}, sysLogger);
+					}, sysLogger);
+					
+						break;
+					default:
+						sysLogger.fatal("server", "Unknown authentication type - should not happen at this level, aborting...");
+						throw new Error("FATAL - Unknown authentication type - should not happen at this level !");
+				}
 			}
 		} else {
 			sysLogger.debug("server", "Credentials missing in post authentication request");

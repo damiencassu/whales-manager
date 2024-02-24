@@ -9,12 +9,13 @@ const COOKIE_VALUE_LENGTH = 16;
 class Cookie {
 
 	/*
+	 * name : name of the cookie
 	 * domain : domain to set on the cookie (must match server domain name)
 	 * secure : boolean to set secure flag (true secure flag set, false not set) 
 	 */
-	constructor (domain, secure){
+	constructor (name, domain, secure){
 		
-		this._name = "wmAuth";
+		this._name = name;
 		this._value = "";
 		this._options = new Object();
 		this._options.domain = domain;

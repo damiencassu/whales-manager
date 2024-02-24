@@ -15,12 +15,18 @@ const LOGGER_SYS = require("./custom_modules/core/logger");
 const LOGGER_HTTP = require("./custom_modules/core/httpLogger");
 const NATIVE = require("./custom_modules/auth/native");
 const COOKIE = require("./custom_modules/auth/cookie");
+const ACCESS = require("./custom_modules/auth/access");
 
 //Log related program constants
 const LOG_DIR = "logs";
 const LOG_FORMAT_HTTP = "common";
 const LOG_FILE_ACCESS = "access.log";
 const LOG_FILE_SYS = "server.log";
+
+//Authentication related constants
+const WM_AUTH_COOKIE_NAME = "wmAuth";
+const WM_AUTH_ID_PARAM_NAME = "wmUserId";
+const WM_AUTH_FAILED_REDIRECT = "/login";
 
 //Certs related constants
 const CERTS_DIR = "certs";
@@ -245,6 +251,10 @@ if (!startupError) {
 	var app = EXPRESS();
 	var accessLogStream = FS.createWriteStream(PATH.join(__dirname, LOG_DIR, LOG_FILE_ACCESS), {flags: "a"});
 
+	/*
+	 * Unprotected resources
+	 */
+
 	//Enabling EXPRESS STATIC middleware - handle css, js, fonts ...
 	app.use(EXPRESS.static("public"));
 
@@ -252,29 +262,13 @@ if (!startupError) {
 	app.use(EXPRESS.json());
 
 	//Enabling HTTP LOGGER middleware
-	app.use(LOGGER_HTTP(accessLogStream));
-		
-	//Handle homepage requests
-	app.get("/", function(req,res) {
-		sysLogger.debug("server", "GET Home page handler");
-		res.setHeader("Content-Type", "text/html");
-		res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED});
-	});
-
-	//Handle settings page requests
-        app.get("/settings", function(req,res) {
-                sysLogger.debug("server", "GET Settings page handler");
-                res.setHeader("Content-Type", "text/html");
-                res.render("settings.ejs");
-
-        });
+	app.use(LOGGER_HTTP(accessLogStream, WM_AUTH_ID_PARAM_NAME));
 
 	//Handle login page requests
         app.get("/login", function(req,res) {
                 sysLogger.debug("server", "GET Login page handler");
                 res.setHeader("Content-Type", "text/html");
                 res.render("login.ejs");
-
         });
 
 	//Handle login credentials post requests
@@ -307,7 +301,7 @@ if (!startupError) {
 							sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
 
 							//Create a new cookie
-							var cookie = new COOKIE(req.hostname, tlsOptions.enable);
+							var cookie = new COOKIE(WM_AUTH_COOKIE_NAME, req.hostname, tlsOptions.enable);
 							//Generate a new cookie value
 							COOKIE.generateCookieValue(function(error, cookieValue){
 								
@@ -347,6 +341,30 @@ if (!startupError) {
                         res.send();
 		}
         });	
+
+
+
+	//Enabling ACCESS middleware
+	app.use(ACCESS(usersSessions, WM_AUTH_ID_PARAM_NAME, WM_AUTH_COOKIE_NAME, JSON.parse(APP_CONFIG.authentication.enabled), WM_AUTH_FAILED_REDIRECT, tlsOptions.enable, sysLogger));
+
+	/*
+	 * Protected resources	
+	 */
+
+	//Handle homepage requests
+        app.get("/", function(req,res) {
+                sysLogger.debug("server", "GET Home page handler");
+                res.setHeader("Content-Type", "text/html");
+                res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED});
+        });
+
+        //Handle settings page requests
+        app.get("/settings", function(req,res) {
+                sysLogger.debug("server", "GET Settings page handler");
+                res.setHeader("Content-Type", "text/html");
+                res.render("settings.ejs");
+
+        });
 
 	//Handle API requests
 	app.get("/api/containersList", function(req, res) {

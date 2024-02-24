@@ -8,9 +8,9 @@ function httpLogger(streamToLogFile, userIDAttribute){
 
 	return function(req, res, next) {
 
-		var userID = req[userIDAttribute] || "anonymous";
-
 		res.on("finish", function(){
+
+			var userID = req[userIDAttribute] || "anonymous";
 			streamToLogFile.write(new Date(Date.now()).toUTCString() + " - " + req.ip + " - " + userID + " - " + req.method + " - " + req.path + " - " + this.statusCode + "\n");
 		});
   		next();

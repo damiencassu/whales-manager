@@ -157,7 +157,7 @@ async function getContainersList () {
 
 //Call API to check if updates are availables
 async function checkUpdate () {
-	var res = await fetch("/api/checkUpdate");
+	var res = await fetch("/sys/checkUpdate");
 	var dataHtml = "";
 	if (res.status == 200) {
         	var data = await res.json();

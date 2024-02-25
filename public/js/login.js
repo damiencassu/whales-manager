@@ -3,7 +3,7 @@ async function sendCredentials () {
 	var creds = new Object();
 	creds.id = document.getElementById("userID").value;
 	creds.pwd = document.getElementById("userPassword").value;
-	var res = await fetch("/login", {
+	var res = await fetch("/sys/login", {
 						method: "POST", 
 						headers: {
 							"Content-Type": "application/json"

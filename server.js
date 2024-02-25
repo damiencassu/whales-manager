@@ -279,7 +279,7 @@ if (!startupError) {
         });
 
 	//Handle login credentials post requests
-        app.post("/login", function(req,res) {
+        app.post("/sys/login", function(req,res) {
                 
 		sysLogger.debug("server", "POST Login credentials handler");
 		
@@ -586,7 +586,7 @@ if (!startupError) {
 		}
 	});
 
-	app.get("/api/checkUpdate", function(req, res) {
+	app.get("/sys/checkUpdate", function(req, res) {
 
 		sysLogger.debug("server", "GET API Check update handler");
 		CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {

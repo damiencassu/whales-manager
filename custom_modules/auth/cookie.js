@@ -91,6 +91,39 @@ class Cookie {
                 }
 		return usersSessionsTable.has(this._value);
 	}
+
+
+	/* Parse cookie from HTTP headers
+	 * cookieHeaders: the raw cookieHeader value extracted from the request
+	 * cookieName: name of the cookie to look for
+	 * domain: domain on which the cookie is set
+	 * secure: a boolean set to true to set the secure flag, false otherwise
+	 * returns
+	 * 	a boolean set to true if the cookie has been found, else if not
+	 *	the found cookie as a Cookie object if found
+	 */
+	static parseCookie(cookieHeaders, cookieName, domain, secure, logger){
+
+		var found = false;
+		var authCookie = "";
+		var cookieList = cookieHeaders.split(";");
+		for (var index=0; index < cookieList.length; index++) {
+			if (cookieList[index].split("=")[0].trim() == cookieName){
+				
+				if (logger != undefined){
+                               		logger.debug("cookie", "Authentication cookie found, starting extraction");
+                       		}		
+
+				authCookie = new Cookie(cookieName, domain, secure); 
+				authCookie.value = cookieList[index].split("=")[1].trim();
+				found = true;
+				break;
+			}
+		}
+
+		return {found: found, authCookie: authCookie};
+	}
+
 }
 
 

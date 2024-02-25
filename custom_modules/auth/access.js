@@ -28,24 +28,9 @@ function access(usersSessionsTable, userIDAttribute, cookieName, authStatus, loc
 		} else if (req.get('Cookie') != undefined) {
 			
 			//Check if the auth cookie is present in the request
-			var found = false;
-			var authCookie = "";
-			var cookieList = req.get('Cookie').split(";");
-			for (var index=0; index < cookieList.length; index++) {
-				if (cookieList[index].split("=")[0].trim() == cookieName){
-					
-					if (logger != undefined){
-                                		logger.debug("access", "Authentication cookie found, starting extraction");
-                        		}		
-
-					authCookie = new COOKIE(cookieName, req.hostname, secure); 
-					authCookie.value = cookieList[index].split("=")[1].trim();
-					found = true;
-					break;
-				}
-			}
+			var result = COOKIE.parseCookie(req.get('Cookie'), cookieName, req.hostname, secure, logger);
 			
-			if(!found){
+			if(!result.found){
 
 				if (logger != undefined){
                                 	logger.debug("access", "Authentication cookie not found, access denied, redirecting user to " + location);
@@ -54,13 +39,13 @@ function access(usersSessionsTable, userIDAttribute, cookieName, authStatus, loc
 				res.redirect(location);
 			
 			//Check if the auth cookie is valid
-			} else if (!authCookie.checkCookieValidity(usersSessionsTable, logger)){
+			} else if (!result.authCookie.checkCookieValidity(usersSessionsTable, logger)){
 
 				if (logger != undefined){
                                         logger.debug("access", "Authentication cookie expired or invalid, access denied, redirecting user to " + location);
                                 }
 
-				res.clearCookie(authCookie.name, authCookie.options);
+				res.clearCookie(result.authCookie.name, result.authCookie.options);
 				res.redirect(location);
 
 	                //If the cookie is valid, register the user ID in the request and let the user pass
@@ -70,7 +55,7 @@ function access(usersSessionsTable, userIDAttribute, cookieName, authStatus, loc
                                         logger.debug("access", "Authentication cookie valid, access granted");
                                 }
 
-				req[userIDAttribute] = usersSessionsTable.get(authCookie.value);
+				req[userIDAttribute] = usersSessionsTable.get(result.authCookie.value);
 				next();
 			}
 

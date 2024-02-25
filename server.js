@@ -362,7 +362,54 @@ if (!startupError) {
 		}
         });	
 
+	//Handle logout requests
+	app.get("/sys/logout", function(req,res) {
+		
+		sysLogger.debug("server", "GET Logout handler");
 
+		//If authentication is disabled, redirect to home page
+		if (!JSON.parse(APP_CONFIG.authentication.enabled)){
+		
+			sysLogger.debug("server", "Authentication disabled, skipping logout process");
+			res.redirect("/");
+
+		//Check if cookie are sent
+		} else if (req.get('Cookie') != undefined){
+
+			//Check if the auth cookie is present in the request
+                        var result = COOKIE.parseCookie(req.get('Cookie'), WM_AUTH_COOKIE_NAME, req.hostname, tlsOptions.enable, sysLogger);
+
+                        if(!result.found){
+
+                                sysLogger.debug("server", "Authentication cookie not found, no logout to perform, redirecting user to " + WM_AUTH_FAILED_REDIRECT);
+                                res.redirect(WM_AUTH_FAILED_REDIRECT);
+
+                        //Check if the auth cookie is valid
+                        } else if (!result.authCookie.checkCookieValidity(usersSessions, sysLogger)){
+
+                                sysLogger.debug("server", "Authentication cookie expired or invalid, no logout to perform, redirecting user to " + WM_AUTH_FAILED_REDIRECT);
+                                res.clearCookie(result.authCookie.name, result.authCookie.options);
+                                res.redirect(WM_AUTH_FAILED_REDIRECT);
+
+                        //If the cookie is valid, unregister the user ID from the request and remove the session from the global table
+                        } else {
+
+                                sysLogger.debug("server", "Authentication cookie valid, killing user session");
+				req[WM_AUTH_ID_PARAM_NAME] = usersSessions.get(result.authCookie.value);
+				result.authCookie.unregisterCookie(usersSessions, sysLogger);
+				res.clearCookie(result.authCookie.name, result.authCookie.options);
+                                res.redirect(WM_AUTH_FAILED_REDIRECT);
+                        }
+		
+		//If no cookies sent, redirect to login page
+		} else {
+			
+			sysLogger.debug("server", "No cookie sent, no logout to perform, redirecting user to " + WM_AUTH_FAILED_REDIRECT);
+                        res.redirect(WM_AUTH_FAILED_REDIRECT);
+
+		}
+
+	});
 
 	//Enabling ACCESS middleware
 	app.use(ACCESS(usersSessions, WM_AUTH_ID_PARAM_NAME, WM_AUTH_COOKIE_NAME, JSON.parse(APP_CONFIG.authentication.enabled), WM_AUTH_FAILED_REDIRECT, tlsOptions.enable, sysLogger));

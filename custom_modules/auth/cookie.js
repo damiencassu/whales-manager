@@ -83,6 +83,16 @@ class Cookie {
 	}
 
 
+	//Take a users sessions MAP and remove the cookie value from it
+        unregisterCookie(usersSessionsTable, logger){
+
+                if (logger != undefined){
+                        logger.debug("cookie", "User session unregistered");
+                }
+                usersSessionsTable.delete(this._value);
+        }
+
+
 	//Take a users sessions MAP and check if the cookie value is part of it
 	checkCookieValidity(usersSessionsTable, logger){
 		

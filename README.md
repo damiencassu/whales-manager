@@ -13,4 +13,6 @@ Author Information
 
 Damien CASSU
 
-Official GitHub repository and documentation on: https://github.com/damiencassu/whales-manager
+Official GitHub repository on: https://github.com/damiencassu/whales-manager
+
+Full documentation available on: https://github.com/damiencassu/whales-manager/wiki

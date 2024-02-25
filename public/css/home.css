@@ -98,6 +98,27 @@
 	box-shadow: none!important;
 }
 
+.popover-header {
+	overflow: hidden;
+        text-overflow: ellipsis;
+	text-align:center;
+}
+
+#wm-logout-button {
+        color: #000;
+        background-color: #ffc107;
+        border-color: #ffc107;
+}
+
+#wm-logout-button:hover {
+        background-color: #ffdb4d;
+        border-color: #ffdb4d;
+}
+
+#wm-logout-button:focus {
+        box-shadow: none!important;
+}
+
 .wm-spinner-grow {
     	width: 0.5rem;
     	height: 0.5rem;

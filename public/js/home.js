@@ -199,12 +199,21 @@ function loadUpdate () {
 }
 
 
-//Refresh button function
-document.getElementById("refreshButton").addEventListener("click", loadContent);
+//Main
+window.onload = function() {
 
-//Update button function
-document.getElementById("wm-update-button").addEventListener("click", loadUpdate);
+	//Refresh button function
+	document.getElementById("refreshButton").addEventListener("click", loadContent);
 
+	//Update button function
+	document.getElementById("wm-update-button").addEventListener("click", loadUpdate);
 
-//Load content when home page opens
-loadContent();
+	//Enable user popup
+	var userPopup = "";
+	if(document.getElementById("wm-user-popup-link") != undefined){
+		userPopup = new bootstrap.Popover(document.getElementById("wm-user-popup-link"));
+	}
+
+	//Load content when home page opens
+	loadContent();
+}

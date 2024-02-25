@@ -422,7 +422,7 @@ if (!startupError) {
         app.get("/", function(req,res) {
                 sysLogger.debug("server", "GET Home page handler");
                 res.setHeader("Content-Type", "text/html");
-                res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED});
+                res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED, authEnabled: JSON.parse(APP_CONFIG.authentication.enabled), username:  req[WM_AUTH_ID_PARAM_NAME]});
         });
 
         //Handle settings page requests

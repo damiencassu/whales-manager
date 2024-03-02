@@ -41,20 +41,42 @@
         animation: spin 2s linear infinite;
 }
 
-.wm-system-title {
+.wm-settings-title {
 	border-bottom: 1px solid #ffc107;
 	margin-bottom: 0.5rem!important;
+	margin-top: 2rem!important;
 	display: flex; 
 	flex-direction: row; 
 
 }
 
-.wm-system-title i {
+.wm-settings-title i {
 	margin-left: auto;
 }
 
 .wm-image-row {
 	border-bottom: 1px solid #ffc107;
+}
+
+
+.wm-chg-button {
+        color: #000;
+        background-color: #ffc107;
+        border-color: #ffc107;
+}
+
+.wm-chg-button:hover {
+        background-color: #ffdb4d;
+        border-color: #ffdb4d;
+}
+
+.wm-chg-button:focus {
+	box-shadow: none!important;
+}
+
+input:focus {
+	box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, .25)!important;
+
 }
 
 @keyframes spin {

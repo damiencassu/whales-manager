@@ -32,5 +32,10 @@ function login () {
 	setTimeout(sendCredentials, "1000");
 }
 
-//Login button function
-document.getElementById("wm-login-button").addEventListener("click", login);
+
+//Main
+window.onload = function() {
+
+	//Login button function
+	document.getElementById("wm-login-button").addEventListener("click", login);
+}

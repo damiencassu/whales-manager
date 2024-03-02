@@ -433,7 +433,7 @@ if (!startupError) {
 
         });
 
-	//Handle API requests
+	//Handle protected Docker related API requests
 	app.get("/api/containersList", function(req, res) {
 		
 		sysLogger.debug("server", "GET API Containers list handler");
@@ -633,20 +633,6 @@ if (!startupError) {
 		}
 	});
 
-	app.get("/sys/checkUpdate", function(req, res) {
-
-		sysLogger.debug("server", "GET API Check update handler");
-		CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
-			//Create a parsed JSON containing the checkUpdate process result
-			//Send the result to the frontend
-			res.setHeader("Content-Type", "application/json");
-                	res.send(result);
-	
-		}, sysLogger);
-
-	});
-
-
 	app.get("/api/systemInfo", function(req, res) {
 
 		sysLogger.debug("server", "GET API System infos handler");
@@ -692,6 +678,30 @@ if (!startupError) {
 
 
         });
+
+
+	//Handle protected system related API calls
+	app.get("/sys/checkUpdate", function(req, res) {
+
+                sysLogger.debug("server", "GET API Check update handler");
+                CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
+                        //Create a parsed JSON containing the checkUpdate process result
+                        //Send the result to the frontend
+                        res.setHeader("Content-Type", "application/json");
+                        res.send(result);
+
+                }, sysLogger);
+
+        });
+
+
+	app.get("/sys/authenticationStatus", function(req, res) {
+		
+		sysLogger.debug("server", "GET API Authentication Status handler");
+		res.setHeader("Content-Type", "application/json");
+                res.send({enabled: JSON.parse(APP_CONFIG.authentication.enabled)});
+
+	}); 
 
 	//Handle 404 error page
 	app.get("/error", function(req, res) {

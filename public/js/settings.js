@@ -60,6 +60,26 @@ async function getImageList() {
 
 }
 
+//Handles button load animation
+function setSpinner(buttonID) {
+
+	document.getElementById(buttonID).innerHTML = "<span class=\"wm-loading-dots\"><span></span><span></span><span></span></span>";
+
+}
+
+//Call API to push new username
+async function changeUsername() {
+
+	setSpinner("wm-chg-username-button");
+}
+
+//Call API to push new username                                                                                                                                                        
+async function changePassword() {
+
+	setSpinner("wm-chg-password-button");
+}
+
+
 async function getNativeAuthenticationInfos() {
 
 	var res = await fetch("/sys/authenticationStatus");
@@ -68,14 +88,14 @@ async function getNativeAuthenticationInfos() {
 		var data = await res.json();
 
 		dataHtml = "<div><h3 class=\"wm-settings-title\">Change native account username <i class=\"bi bi-person-fill\"></i></h3>";
-		dataHtml += "<form class=\"row g-3\"><div class=\"col-auto\"><input type=\"text\" placeholder=\"Enter new username\" class=\"form-control\" id=\"userID\"></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-chg-username-button\" class=\"btn wm-chg-button\">Change</button></div></form>";
+		dataHtml += "<form class=\"row g-3\"><div class=\"col-auto\"><input type=\"text\" placeholder=\"Enter new username\" class=\"form-control\" id=\"userID\"></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-chg-username-button\" class=\"btn wm-chg-button\">Change</button></div></form><i>Authorized charaters are A-Z, a-z and 0-9</i>";
 		dataHtml += "<h3 class=\"wm-settings-title\">Change native account password <i class=\"bi bi-key-fill\"></i></h3>"
-		dataHtml += "<form class=\"row g-3\"><div class=\"col-auto\"><input type=\"password\" placeholder=\"Enter new password\" class=\"form-control\" id=\"userPassword\"></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-chg-password-button\" class=\"btn wm-chg-button\">Change</button></div></form>";
+		dataHtml += "<form class=\"row g-3\"><div class=\"col-auto\"><input type=\"password\" placeholder=\"Enter new password\" class=\"form-control\" id=\"userPassword\"></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-chg-password-button\" class=\"btn wm-chg-button\">Change</button></div></form><i>Password must be 12 characters long at least</i>";
 		dataHtml += "<h3 class=\"wm-settings-title\">Native authentication status <i class=\"bi bi-shield-lock-fill\"></i></h3>";
 		if(data.enabled){
-			dataHtml += "<form class=\"row g-3 align-items-center\"><div class=\"col-auto\"><div class=\"alert alert-success\" role=\"alert\"><strong>The Authentication Module is Enabled</strong></div></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-disable-auth-button\" class=\"btn btn-danger\">Disable</button></div></form>";
+			dataHtml += "<form class=\"row g-3 align-items-center\"><div class=\"col-auto\"><div class=\"alert alert-success\" role=\"alert\"><strong>The Authentication Module is Enabled</strong></div></div></form>";
 		} else {
-			dataHtml += "<form class=\"row g-3 align-items-center\"><div class=\"col-auto\"><div class=\"alert alert-danger\" role=\"alert\"><strong>The Authentication Module is Disabled</strong></div></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-enable-auth-button\" class=\"btn btn-success\">Enable</button></div></form>";
+			dataHtml += "<form class=\"row g-3 align-items-center\"><div class=\"col-auto\"><div class=\"alert alert-danger\" role=\"alert\"><strong>The Authentication Module is Disabled</strong></div></div></form>";
 		}
 		dataHtml += "</div>";
 
@@ -85,6 +105,9 @@ async function getNativeAuthenticationInfos() {
 	}
 
 	document.getElementById("mainContent").innerHTML = dataHtml;
+	document.getElementById("wm-chg-username-button").addEventListener("click", changeUsername);
+	document.getElementById("wm-chg-password-button").addEventListener("click", changePassword);
+
 
 }
 

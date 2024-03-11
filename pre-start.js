@@ -4,7 +4,7 @@ const PATH = require("node:path");
 
 // Template related constants
 const TEMPLATE_DIR = "templates";
-const TEMPLATE_FILES = ["server.json.template", "ca.cfg.template", "cacert.cfg.template", "servweb.cfg.template"];
+const TEMPLATE_FILES = ["server.json.template", "users.json.template","ca.cfg.template", "cacert.cfg.template", "servweb.cfg.template"];
 
 // Logs related constants
 const LOG_DIR = "logs";

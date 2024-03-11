@@ -23,7 +23,7 @@
 					</li>
 				</ul>
 				<div class="justify-content-end">
-					<span class="mx-2"><i class="bi bi-person-circle fa-2x wm-navbar-icon"></i></span>
+					<% if (authEnabled){ %><a class="mx-2" id="wm-user-popup-link" tabindex="0" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="focus" data-bs-html="true" data-bs-title=<%=username%> data-bs-content='<div class="popover" role="tooltip"><div><a class="btn btn-primary" id="wm-logout-button" href="/sys/logout" role="button">Logout</a></div></div>'><i class="bi bi-person-circle fa-2x wm-navbar-icon"></i></a><% } %>
 					<a class="mx-2" href=/settings><i class="bi bi-gear fa-2x wm-navbar-icon"></i></a>
 					<span class="mx-2"><i class="bi bi-question-circle fa-2x wm-navbar-icon" data-bs-toggle="modal" data-bs-target="#aboutPopup"></i></span>
 				</div>

@@ -8,8 +8,8 @@ Vulnerabilities can also be reported for beta branches/versions.
 
 | Version         | Supported          |
 | -------         | ------------------ |
-| 1.5.x           | :heavy_check_mark: |
-| 1.4.x and below | :x:                |
+| 1.7.x           | :heavy_check_mark: |
+| 1.6.x and below | :x:                |
 
 
 ## Reporting a Vulnerability

@@ -2,7 +2,6 @@
 const EXPRESS = require("express");
 const HTTP = require("node:http");
 const HTTPS = require("node:https");
-const LOGGER_HTTP = require("morgan");
 const FS = require("node:fs");
 const PATH = require("node:path");
 
@@ -13,12 +12,23 @@ const CRYPTO = require("./custom_modules/core/crypto");
 const CONTAINER = require("./custom_modules/docker/container");
 const IMAGE = require("./custom_modules/docker/image");
 const LOGGER_SYS = require("./custom_modules/core/logger");
+const LOGGER_HTTP = require("./custom_modules/core/httpLogger");
+const NATIVE = require("./custom_modules/auth/native");
+const COOKIE = require("./custom_modules/auth/cookie");
+const ACCESS = require("./custom_modules/auth/access");
 
 //Log related program constants
 const LOG_DIR = "logs";
 const LOG_FORMAT_HTTP = "common";
 const LOG_FILE_ACCESS = "access.log";
 const LOG_FILE_SYS = "server.log";
+
+//Authentication related constants
+const WM_AUTH_COOKIE_NAME = "wmAuth";
+const WM_AUTH_ID_PARAM_NAME = "wmUserId";
+const WM_AUTH_FAILED_REDIRECT = "/login";
+const WM_AUTH_NATIVE_USERDB_FILE = "./conf/users.json";
+
 
 //Certs related constants
 const CERTS_DIR = "certs";
@@ -36,6 +46,12 @@ sysLogger.info("server", "########## Whales Manager starting... ##########");
 
 //TLS options for HTTPS handling
 var tlsOptions = {enable: false, key: "", cert: ""};
+
+//Local users database
+var usersDB = new Map();
+
+//Global users sessions table
+var usersSessions = new Map();
 
 //Other program constants
 var startupError = false;
@@ -140,6 +156,44 @@ if (APP_CONFIG != undefined) {
 		startupError = true;
 		sysLogger.fatal("server", "No https property found in server.json, exiting...");
 	}
+
+	//Checking for authentication configuration
+	if (APP_CONFIG.authentication != undefined){
+		if(APP_CONFIG.authentication.enabled != undefined && APP_CONFIG.authentication.type != undefined){
+
+			if(JSON.parse(APP_CONFIG.authentication.enabled) && APP_CONFIG.authentication.type == "native"){
+				
+				sysLogger.info("server", "Native authentication enabled (default)");
+
+				//Try to load local users database
+				usersDB = NATIVE.loadUsersFile(WM_AUTH_NATIVE_USERDB_FILE, sysLogger);
+			
+				if (usersDB != undefined){
+					sysLogger.info("server", "Local users database loaded sucessfully");
+				} else {
+					startupError = true;
+		                        sysLogger.fatal("server", "Failed to load users database file, exiting...");
+				}
+
+			} else if (JSON.parse(APP_CONFIG.authentication.enabled) && APP_CONFIG.authentication.type != undefined) { 
+				
+				startupError = true;
+                               	sysLogger.fatal("server", "Unknown authentication type detected, exiting...");
+			}else {
+				
+				sysLogger.warn("server", "Authentication disabled (custom)");
+			}
+
+		} else {
+			startupError = true;
+                	sysLogger.fatal("server", "No authentication enable and/or no authentication type property found in server.json, exiting...");
+		}
+
+	} else {
+		startupError = true;
+                sysLogger.fatal("server", "No authentication property found in server.json, exiting...");
+	}
+
 } else {
 	startupError = true;
 	sysLogger.fatal("server", "No config file detected, exiting...");
@@ -199,20 +253,181 @@ if (!startupError) {
 	var app = EXPRESS();
 	var accessLogStream = FS.createWriteStream(PATH.join(__dirname, LOG_DIR, LOG_FILE_ACCESS), {flags: "a"});
 
+	/*
+	 * Unprotected resources
+	 */
+
 	//Enabling EXPRESS STATIC middleware - handle css, js, fonts ...
 	app.use(EXPRESS.static("public"));
 
-	//Enabling HTTP LOGGER middleware
-	app.use(LOGGER_HTTP(LOG_FORMAT_HTTP, {stream: accessLogStream}));
+	//Enabling application/json POST body parsing
+	app.use(EXPRESS.json());
 
-	//Handle homepage requests
-	app.get("/", function(req,res) {
-		sysLogger.debug("server", "GET Home page handler");
-		res.setHeader("Content-Type", "text/html");
-		res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED});
+	//Enabling HTTP LOGGER middleware
+	app.use(LOGGER_HTTP(accessLogStream, WM_AUTH_ID_PARAM_NAME));
+
+	//Handle login page requests
+        app.get("/login", function(req,res) {
+
+		sysLogger.debug("server", "GET Login page handler");
+
+		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+			sysLogger.debug("server", "Authentication disabled, skipping login page");
+			res.redirect("/");
+		} else {
+                	res.setHeader("Content-Type", "text/html");
+                	res.render("login.ejs");
+		}
+        });
+
+	//Handle login credentials post requests
+        app.post("/sys/login", function(req,res) {
+                
+		sysLogger.debug("server", "POST Login credentials handler");
+		
+		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+                        sysLogger.debug("server", "Authentication disabled, skipping login page post credential");
+                        res.redirect("/");
+		
+		//Checking user input
+		} else if (req.body.id != undefined && req.body.pwd != undefined) {
+
+			res.setHeader("Content-Type", "application/json");
+			
+			var resultId = NATIVE.sanitizeUserId(req.body.id, sysLogger);
+			var resultPwd = NATIVE.sanitizeUserPassword(req.body.pwd, sysLogger);
+			if (!resultId.safe || !resultPwd.safe){
+				sysLogger.debug("server", "Malformed or unauthorized credentials in post authentication request");
+				res.status(401);
+                         	res.send();
+			} else if (!usersDB.has(resultId.id)) {
+				sysLogger.info("server", "User " + resultId.id + " unknown - authentication failed");
+                                res.status(401);
+                                res.send();
+			} else {
+			
+				switch (APP_CONFIG.authentication.type) {
+  				case "native":
+					//Hash inputed password and compare with one stored in DB
+					NATIVE.hashPassword(resultPwd.pwd, usersDB.get(resultId.id).salt, function(error, hashedPassword){
+
+						if (!error){
+					
+							if (hashedPassword == usersDB.get(resultId.id).hash){
+								sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
+
+								//Create a new cookie
+								var cookie = new COOKIE(WM_AUTH_COOKIE_NAME, req.hostname, tlsOptions.enable);
+								//Generate a new cookie value
+								COOKIE.generateCookieValue(function(error, cookieValue){
+								
+									if (!error){
+										//Assign the value to the cookie
+										cookie.value = cookieValue;
+										//Register the session
+		                                                        	cookie.registerCookie(usersSessions, resultId.id, sysLogger);
+										//Set the cookie to the response
+										res.cookie(cookie.name, cookie.value, cookie.options);
+										//Send the cookie to user and redirect to home page
+										var data = new Object();
+                                                        			data.location = "/";
+                                                        			res.send(data);
+									} else {
+										sysLogger.error("server", "User " + resultId.id + " - cookie generation failed - authentication rejected");
+										res.status(401);
+                                                        			res.send();
+									}
+								}, sysLogger);
+
+							} else {
+								sysLogger.info("server", "User " + resultId.id + " - authentication failed");
+								res.status(401);
+                         					res.send();
+							}
+						} else {
+							sysLogger.error("server", "User " + resultId.id + " - inputed password hash computation failed - authentication rejected");
+							res.status(401);
+                                                	res.send();
+						}
+					}, sysLogger);
+					
+						break;
+					default:
+						sysLogger.fatal("server", "Unknown authentication type - should not happen at this level, aborting...");
+						throw new Error("FATAL - Unknown authentication type - should not happen at this level !");
+				}
+			}
+		} else {
+			sysLogger.debug("server", "Credentials missing in post authentication request");
+                        res.status(401);
+                        res.send();
+		}
+        });	
+
+	//Handle logout requests
+	app.get("/sys/logout", function(req,res) {
+		
+		sysLogger.debug("server", "GET Logout handler");
+
+		//If authentication is disabled, redirect to home page
+		if (!JSON.parse(APP_CONFIG.authentication.enabled)){
+		
+			sysLogger.debug("server", "Authentication disabled, skipping logout process");
+			res.redirect("/");
+
+		//Check if cookie are sent
+		} else if (req.get('Cookie') != undefined){
+
+			//Check if the auth cookie is present in the request
+                        var result = COOKIE.parseCookie(req.get('Cookie'), WM_AUTH_COOKIE_NAME, req.hostname, tlsOptions.enable, sysLogger);
+
+                        if(!result.found){
+
+                                sysLogger.debug("server", "Authentication cookie not found, no logout to perform, redirecting user to " + WM_AUTH_FAILED_REDIRECT);
+                                res.redirect(WM_AUTH_FAILED_REDIRECT);
+
+                        //Check if the auth cookie is valid
+                        } else if (!result.authCookie.checkCookieValidity(usersSessions, sysLogger)){
+
+                                sysLogger.debug("server", "Authentication cookie expired or invalid, no logout to perform, redirecting user to " + WM_AUTH_FAILED_REDIRECT);
+                                res.clearCookie(result.authCookie.name, result.authCookie.options);
+                                res.redirect(WM_AUTH_FAILED_REDIRECT);
+
+                        //If the cookie is valid, unregister the user ID from the request and remove the session from the global table
+                        } else {
+
+                                sysLogger.debug("server", "Authentication cookie valid, killing user session");
+				req[WM_AUTH_ID_PARAM_NAME] = usersSessions.get(result.authCookie.value);
+				result.authCookie.unregisterCookie(usersSessions, sysLogger);
+				res.clearCookie(result.authCookie.name, result.authCookie.options);
+                                res.redirect(WM_AUTH_FAILED_REDIRECT);
+                        }
+		
+		//If no cookies sent, redirect to login page
+		} else {
+			
+			sysLogger.debug("server", "No cookie sent, no logout to perform, redirecting user to " + WM_AUTH_FAILED_REDIRECT);
+                        res.redirect(WM_AUTH_FAILED_REDIRECT);
+
+		}
+
 	});
 
-	//Handle settings page requests
+	//Enabling ACCESS middleware
+	app.use(ACCESS(usersSessions, WM_AUTH_ID_PARAM_NAME, WM_AUTH_COOKIE_NAME, JSON.parse(APP_CONFIG.authentication.enabled), WM_AUTH_FAILED_REDIRECT, tlsOptions.enable, sysLogger));
+
+	/*
+	 * Protected resources	
+	 */
+
+	//Handle homepage requests
+        app.get("/", function(req,res) {
+                sysLogger.debug("server", "GET Home page handler");
+                res.setHeader("Content-Type", "text/html");
+                res.render("home.ejs", {appVersion : APP_VERSION, appRepoUrl: APP_REPO_URL, dockerized: DOCKERIZED, authEnabled: JSON.parse(APP_CONFIG.authentication.enabled), username:  req[WM_AUTH_ID_PARAM_NAME]});
+        });
+
+        //Handle settings page requests
         app.get("/settings", function(req,res) {
                 sysLogger.debug("server", "GET Settings page handler");
                 res.setHeader("Content-Type", "text/html");
@@ -220,8 +435,7 @@ if (!startupError) {
 
         });
 
-
-	//Handle API requests
+	//Handle protected Docker related API requests
 	app.get("/api/containersList", function(req, res) {
 		
 		sysLogger.debug("server", "GET API Containers list handler");
@@ -421,20 +635,6 @@ if (!startupError) {
 		}
 	});
 
-	app.get("/api/checkUpdate", function(req, res) {
-
-		sysLogger.debug("server", "GET API Check update handler");
-		CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
-			//Create a parsed JSON containing the checkUpdate process result
-			//Send the result to the frontend
-			res.setHeader("Content-Type", "application/json");
-                	res.send(result);
-	
-		}, sysLogger);
-
-	});
-
-
 	app.get("/api/systemInfo", function(req, res) {
 
 		sysLogger.debug("server", "GET API System infos handler");
@@ -480,6 +680,130 @@ if (!startupError) {
 
 
         });
+
+
+	//Handle protected system related API calls
+	app.get("/sys/checkUpdate", function(req, res) {
+
+                sysLogger.debug("server", "GET API Check update handler");
+                CORE.checkAppUpdate(APP_VERSION, APP_REPO_URL, function (result) {
+                        //Create a parsed JSON containing the checkUpdate process result
+                        //Send the result to the frontend
+                        res.setHeader("Content-Type", "application/json");
+                        res.send(result);
+
+                }, sysLogger);
+
+        });
+
+
+	app.get("/sys/authenticationStatus", function(req, res) {
+		
+		sysLogger.debug("server", "GET API Authentication Status handler");
+		res.setHeader("Content-Type", "application/json");
+                res.send({enabled: JSON.parse(APP_CONFIG.authentication.enabled)});
+
+	});
+
+	app.post("/sys/changeUsername", function(req, res) {
+
+		sysLogger.debug("server", "POST API Change Username handler");
+                res.setHeader("Content-Type", "application/json");
+
+                if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+                        sysLogger.debug("server", "Authentication disabled, skipping change username request");
+                        res.status(401);
+                        res.send();
+
+                } else if (req.body.id != undefined) {
+                        var result = NATIVE.sanitizeUserId(req.body.id, sysLogger);
+                        if (!result.safe){
+                                sysLogger.debug("server", "Malformed or unauthorized username in post change password request");
+                                res.status(401);
+                                res.send();
+
+                        } else {
+                                //Generate a new user with new username
+				var updatedUser = NATIVE.updateUserName(result.id, usersDB.get(req[WM_AUTH_ID_PARAM_NAME]).salt, usersDB.get(req[WM_AUTH_ID_PARAM_NAME]).hash, sysLogger);
+				//Push the updated user to file
+                                NATIVE.pushUserToFile(WM_AUTH_NATIVE_USERDB_FILE, updatedUser, function(error){
+
+					if(!error){
+                                        	sysLogger.info("server", "Username changed for " + req[WM_AUTH_ID_PARAM_NAME]);
+                                                res.status(200);
+                                                res.send();
+
+                                        } else {
+                                        	sysLogger.error("server", "Username change failed - error while writing to file");
+                                                res.status(401);
+                                                res.send();
+                                        }
+
+                               }, sysLogger);
+                        }
+
+                } else {
+                        sysLogger.debug("server", "New userid missing in post change username request");
+                        res.status(401);
+                        res.send();
+		}
+
+	});
+
+	app.post("/sys/changePassword", function(req, res) {
+
+		sysLogger.debug("server", "POST API Change Password handler");
+		res.setHeader("Content-Type", "application/json");
+		
+		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+                        sysLogger.debug("server", "Authentication disabled, skipping change password request");
+                        res.status(401);
+                        res.send();
+
+		} else if (req.body.pwd != undefined) {
+			var result = NATIVE.sanitizeUserPassword(req.body.pwd, sysLogger);
+			if (!result.safe){
+				sysLogger.debug("server", "Malformed or unauthorized password in post change password request");
+				res.status(401);
+                        	res.send();
+
+			} else {
+				//Generate a new user with new password
+				NATIVE.updateUserPassword(req[WM_AUTH_ID_PARAM_NAME], result.pwd, function(error, newUser){
+			
+					if (!error) {
+                                                //Push the updated user to file
+						NATIVE.pushUserToFile(WM_AUTH_NATIVE_USERDB_FILE, newUser, function(error){
+							
+							if(!error){
+								sysLogger.info("server", "Password changed for " + req[WM_AUTH_ID_PARAM_NAME]);
+								res.status(200);
+                                                                res.send();
+								
+							} else {
+								sysLogger.error("server", "Password change failed - error while writing to file");
+                                                		res.status(401);
+                                                		res.send();
+							}
+
+						}, sysLogger);
+
+					} else {
+						sysLogger.error("server", "Password change failed - error while hashing password");
+						res.status(401);
+                                		res.send();
+					}
+
+				}, sysLogger);
+			}
+
+		} else {
+			sysLogger.debug("server", "New password missing in post change password request");
+                        res.status(401);
+                        res.send();
+		}
+
+	});
 
 	//Handle 404 error page
 	app.get("/error", function(req, res) {

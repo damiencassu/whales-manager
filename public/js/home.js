@@ -1,5 +1,5 @@
 //Call API to retrieve Container info
-async function getContainerInfo (containerId) {
+async function getContainerInfo(containerId) {
 
 	//Send the GET request to Whales Manager API
 	var res = await fetch("/api/containerInfo/"+ containerId);
@@ -14,7 +14,7 @@ async function getContainerInfo (containerId) {
 
 
 //Call API to start a container
-async function startContainer (eventTarget) {
+async function startContainer(eventTarget) {
 
 	//Send the POST request to Whales Manager API
 	var res = await fetch("/api/startContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
@@ -44,7 +44,7 @@ function loadStartContainer(eventTarget) {
 }
 
 //Call API to stop a container
-async function stopContainer (eventTarget) {
+async function stopContainer(eventTarget) {
 
 	 //Send the POST request to Whales Manager API
 	var res = await fetch("/api/stopContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
@@ -74,7 +74,7 @@ function loadStopContainer(eventTarget) {
 }
 
 //Call API to restart a container
-async function restartContainer (eventTarget) {
+async function restartContainer(eventTarget) {
 
 	//Send the POST request to Whales Manager API
 	var res = await fetch("/api/restartContainer/"+ eventTarget.srcElement.parentNode.parentNode.id, {method: "POST"});
@@ -96,7 +96,7 @@ async function restartContainer (eventTarget) {
 }
 
 //Call API to restart a container
-function loadRestartContainer (eventTarget) {
+function loadRestartContainer(eventTarget) {
 
 	//Put the restart button in glowing mode
 	eventTarget.srcElement.className = "wm-container-controls-loading wm-restart bi bi-arrow-clockwise";
@@ -105,7 +105,7 @@ function loadRestartContainer (eventTarget) {
 
 
 //Call API to get the containers list and update frontend accordingly
-async function getContainersList () {
+async function getContainersList() {
 	var res = await fetch("/api/containersList");
 	if (res.status == 200) {
 		var data = await res.json();
@@ -156,8 +156,8 @@ async function getContainersList () {
 };
 
 //Call API to check if updates are availables
-async function checkUpdate () {
-	var res = await fetch("/api/checkUpdate");
+async function checkUpdate() {
+	var res = await fetch("/sys/checkUpdate");
 	var dataHtml = "";
 	if (res.status == 200) {
         	var data = await res.json();
@@ -182,7 +182,7 @@ async function checkUpdate () {
 
 
 //Displays loadbar and triggers API call
-function loadContent () {
+function loadContent() {
 
 	document.getElementById("mainContent").innerHTML = "<div class=\"row wm-loader-row\"><div class=\"col-2 offset-5 wm-loader\"></div></div>";
 	setTimeout(getContainersList, "2500");
@@ -191,20 +191,29 @@ function loadContent () {
 
 
 //Handles update button load animation and triggers API call
-function loadUpdate () {
+function loadUpdate() {
 
-	document.getElementById("wm-update-button").innerHTML = "<span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span><span>  </span><span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span><span>  </span><span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span>";
+	document.getElementById("wm-update-button").innerHTML = "<span class=\"wm-loading-dots\"><span></span><span></span><span></span></span>";
 	//Api call to check update
 	checkUpdate();
 }
 
 
-//Refresh button function
-document.getElementById("refreshButton").addEventListener("click", loadContent);
+//Main
+window.onload = function() {
 
-//Update button function
-document.getElementById("wm-update-button").addEventListener("click", loadUpdate);
+	//Refresh button function
+	document.getElementById("refreshButton").addEventListener("click", loadContent);
 
+	//Update button function
+	document.getElementById("wm-update-button").addEventListener("click", loadUpdate);
 
-//Load content when home page opens
-loadContent();
+	//Enable user popup
+	var userPopup = "";
+	if(document.getElementById("wm-user-popup-link") != undefined){
+		userPopup = new bootstrap.Popover(document.getElementById("wm-user-popup-link"));
+	}
+
+	//Load content when home page opens
+	loadContent();
+}

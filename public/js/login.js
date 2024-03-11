@@ -27,7 +27,7 @@ async function sendCredentials () {
 //Handles login button login animation and triggers credentials post
 function login () {
 
-	document.getElementById("wm-login-button").innerHTML = "<span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span><span>  </span><span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span><span>  </span><span class=\"spinner-grow wm-spinner-grow\" role=\"status\"></span>";
+	document.getElementById("wm-login-button").innerHTML = "<span class=\"wm-loading-dots\"><span></span><span></span><span></span></span>";
 	//Post credentials
 	setTimeout(sendCredentials, "1000");
 }

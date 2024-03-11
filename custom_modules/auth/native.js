@@ -12,7 +12,7 @@ const PBKDF2_ITERATION = 210000;
 const PBKDF2_KEYLENGTH = 64;
 const PBKDF2_DIGEST = "sha512";
 
-//Load a local users database from JSON file, return undefined if not found or error
+//Load a local users database from JSON file as a MAP, return undefined if not found or error
 function loadUsersFile(filePath, logger){
 	
 	if (logger != undefined){
@@ -20,10 +20,48 @@ function loadUsersFile(filePath, logger){
         }
 	try {
 
-	        return JSON.parse(FS.readFileSync(filePath));
+	        return new Map(Object.entries(JSON.parse(FS.readFileSync(filePath))));
 	} catch (err) {
 		return undefined;
 	}
+}
+
+//Push an updated native user to a JSON file
+/*
+ * filePath: path to the local users JSON file
+ * user: user to push to the file
+ * callback function which takes
+ * 	a boolean error value set to true if an error occured, false otherwise
+ */
+function pushUserToFile(filePath, user, callback, logger){
+
+        if (logger != undefined){
+                logger.debug("native", "Pushing updated user fo file: " + filePath);
+        }
+	
+	//Write the user to the local perisitent file
+	var parsedUser = new Object();
+	parsedUser[user.username] = {salt: user.salt, hash: user.hash};
+	FS.writeFile(filePath, JSON.stringify(parsedUser), function(err){
+	
+		if (!err){
+
+			if (logger != undefined){
+                		logger.debug("native", "Updated user sucessfully pushed to file: " + filePath);
+        		}
+			
+			callback(false);
+
+		} else {
+			
+			if (logger != undefined){
+                                logger.error("native", "Error while writting file: " + filePath);
+                        }
+			callback(true);
+		}
+
+
+	});
 }
 
 //Sanitize user id
@@ -34,7 +72,7 @@ function loadUsersFile(filePath, logger){
 function sanitizeUserId(uid, logger){
 
 	var regexp = /^[A-Za-z0-9]*$/i;
-        if (regexp.test(uid)){
+        if (regexp.test(uid) && uid != ""){
 
                 if (logger != undefined){
                         logger.debug("native", "User ID (" + uid + ") sanitization OK");
@@ -106,15 +144,15 @@ function hashPassword(password, salt, callback, logger) {
 
 }
 
-//Create a new native user
+//Update password of a native user
 /*
- * username: sanitized name of the user to create
- * password: sanitized password of the user to create
+ * username: sanitized name of the user to update
+ * password: sanitized password of the new password to set to the user
  * callback function which takes
  * 	a boolean error value set to true if an error occured, false otherwise
- * 	the newly created user object to store in the local database (if no error only)
+ * 	the updated user object to store in the local database (if no error only)
  */
-function createUser(username, password, callback, logger){
+function updateUserPassword(username, password, callback, logger){
 
 	var newUser = new Object();
 
@@ -126,7 +164,7 @@ function createUser(username, password, callback, logger){
 		if (err){
 
                         if (logger != undefined){
-                                logger.error("native", "New user creation failed - salt generation failure - aborted");
+                                logger.error("native", "User password update error - salt generation failure - aborted");
                 	}
                         callback(true);
 		} else {
@@ -137,7 +175,7 @@ function createUser(username, password, callback, logger){
 				if (!error){
 
 					if (logger != undefined){
-                                		logger.debug("native", "New user successfully generated");
+                                		logger.debug("native", "New user password generated");
                         		}
 
 					newUser.hash = hashedPassword;
@@ -145,7 +183,7 @@ function createUser(username, password, callback, logger){
 				} else {
 				
 					if (logger != undefined){
-                                        	logger.error("native", "New user generation failed");
+                                        	logger.error("native", "New user password generation failed");
                                 	}
 					callback(true);
 				}
@@ -154,9 +192,31 @@ function createUser(username, password, callback, logger){
 	});
 }
 
+//Update username of a native user
+/*
+ * username: sanitized name of the new username to set
+ * salt: password salt of the user to update
+ * hash: password hash of the the user to update
+ */
+function updateUserName(username, salt, hash, logger){
+	
+	var newUser = new Object();
+        newUser.username = username;
+	newUser.salt = salt;
+	newUser.hash = hash;
+
+	if (logger != undefined){
+        	logger.debug("native", "New user username generated");
+        }
+
+	return newUser;
+}
+
 //Export section
 module.exports.loadUsersFile = loadUsersFile;
+module.exports.pushUserToFile = pushUserToFile;
 module.exports.sanitizeUserPassword = sanitizeUserPassword;
 module.exports.sanitizeUserId = sanitizeUserId;
 module.exports.hashPassword = hashPassword;
-module.exports.createUser = createUser;
+module.exports.updateUserPassword = updateUserPassword;
+module.exports.updateUserName = updateUserName;

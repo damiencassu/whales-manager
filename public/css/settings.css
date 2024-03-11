@@ -74,6 +74,16 @@
 	box-shadow: none!important;
 }
 
+.wm-chg-message-success {
+	margin-top: 0.5rem;
+	color: #22ad15;
+}
+
+.wm-chg-message-error {
+        margin-top: 0.5rem;
+        color: #dc3545;
+}
+
 .wm-loading-dots span{
     	width: 0.5rem;
     	height: 0.5rem;

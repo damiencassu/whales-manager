@@ -27,6 +27,8 @@ const LOG_FILE_SYS = "server.log";
 const WM_AUTH_COOKIE_NAME = "wmAuth";
 const WM_AUTH_ID_PARAM_NAME = "wmUserId";
 const WM_AUTH_FAILED_REDIRECT = "/login";
+const WM_AUTH_NATIVE_USERDB_FILE = "./conf/users.json";
+
 
 //Certs related constants
 const CERTS_DIR = "certs";
@@ -46,7 +48,7 @@ sysLogger.info("server", "########## Whales Manager starting... ##########");
 var tlsOptions = {enable: false, key: "", cert: ""};
 
 //Local users database
-var usersDB = [];
+var usersDB = new Map();
 
 //Global users sessions table
 var usersSessions = new Map();
@@ -164,8 +166,8 @@ if (APP_CONFIG != undefined) {
 				sysLogger.info("server", "Native authentication enabled (default)");
 
 				//Try to load local users database
-				usersDB = NATIVE.loadUsersFile("./conf/users.json", sysLogger);
-				
+				usersDB = NATIVE.loadUsersFile(WM_AUTH_NATIVE_USERDB_FILE, sysLogger);
+			
 				if (usersDB != undefined){
 					sysLogger.info("server", "Local users database loaded sucessfully");
 				} else {
@@ -298,7 +300,7 @@ if (!startupError) {
 				sysLogger.debug("server", "Malformed or unauthorized credentials in post authentication request");
 				res.status(401);
                          	res.send();
-			} else if (usersDB[resultId.id] == undefined) {
+			} else if (!usersDB.has(resultId.id)) {
 				sysLogger.info("server", "User " + resultId.id + " unknown - authentication failed");
                                 res.status(401);
                                 res.send();
@@ -307,11 +309,11 @@ if (!startupError) {
 				switch (APP_CONFIG.authentication.type) {
   				case "native":
 					//Hash inputed password and compare with one stored in DB
-					NATIVE.hashPassword(resultPwd.pwd, usersDB[resultId.id].salt, function(error, hashedPassword){
+					NATIVE.hashPassword(resultPwd.pwd, usersDB.get(resultId.id).salt, function(error, hashedPassword){
 
 						if (!error){
 					
-							if (hashedPassword == usersDB[resultId.id].hash){
+							if (hashedPassword == usersDB.get(resultId.id).hash){
 								sysLogger.info("server", "User " + resultId.id + " - authentication successfull");
 
 								//Create a new cookie
@@ -701,7 +703,107 @@ if (!startupError) {
 		res.setHeader("Content-Type", "application/json");
                 res.send({enabled: JSON.parse(APP_CONFIG.authentication.enabled)});
 
-	}); 
+	});
+
+	app.post("/sys/changeUsername", function(req, res) {
+
+		sysLogger.debug("server", "POST API Change Username handler");
+                res.setHeader("Content-Type", "application/json");
+
+                if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+                        sysLogger.debug("server", "Authentication disabled, skipping change username request");
+                        res.status(401);
+                        res.send();
+
+                } else if (req.body.id != undefined) {
+                        var result = NATIVE.sanitizeUserId(req.body.id, sysLogger);
+                        if (!result.safe){
+                                sysLogger.debug("server", "Malformed or unauthorized username in post change password request");
+                                res.status(401);
+                                res.send();
+
+                        } else {
+                                //Generate a new user with new username
+				var updatedUser = NATIVE.updateUserName(result.id, usersDB.get(req[WM_AUTH_ID_PARAM_NAME]).salt, usersDB.get(req[WM_AUTH_ID_PARAM_NAME]).hash, sysLogger);
+				//Push the updated user to file
+                                NATIVE.pushUserToFile(WM_AUTH_NATIVE_USERDB_FILE, updatedUser, function(error){
+
+					if(!error){
+                                        	sysLogger.info("server", "Username changed for " + req[WM_AUTH_ID_PARAM_NAME]);
+                                                res.status(200);
+                                                res.send();
+
+                                        } else {
+                                        	sysLogger.error("server", "Username change failed - error while writing to file");
+                                                res.status(401);
+                                                res.send();
+                                        }
+
+                               }, sysLogger);
+                        }
+
+                } else {
+                        sysLogger.debug("server", "New userid missing in post change username request");
+                        res.status(401);
+                        res.send();
+		}
+
+	});
+
+	app.post("/sys/changePassword", function(req, res) {
+
+		sysLogger.debug("server", "POST API Change Password handler");
+		res.setHeader("Content-Type", "application/json");
+		
+		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
+                        sysLogger.debug("server", "Authentication disabled, skipping change password request");
+                        res.status(401);
+                        res.send();
+
+		} else if (req.body.pwd != undefined) {
+			var result = NATIVE.sanitizeUserPassword(req.body.pwd, sysLogger);
+			if (!result.safe){
+				sysLogger.debug("server", "Malformed or unauthorized password in post change password request");
+				res.status(401);
+                        	res.send();
+
+			} else {
+				//Generate a new user with new password
+				NATIVE.updateUserPassword(req[WM_AUTH_ID_PARAM_NAME], result.pwd, function(error, newUser){
+			
+					if (!error) {
+                                                //Push the updated user to file
+						NATIVE.pushUserToFile(WM_AUTH_NATIVE_USERDB_FILE, newUser, function(error){
+							
+							if(!error){
+								sysLogger.info("server", "Password changed for " + req[WM_AUTH_ID_PARAM_NAME]);
+								res.status(200);
+                                                                res.send();
+								
+							} else {
+								sysLogger.error("server", "Password change failed - error while writing to file");
+                                                		res.status(401);
+                                                		res.send();
+							}
+
+						}, sysLogger);
+
+					} else {
+						sysLogger.error("server", "Password change failed - error while hashing password");
+						res.status(401);
+                                		res.send();
+					}
+
+				}, sysLogger);
+			}
+
+		} else {
+			sysLogger.debug("server", "New password missing in post change password request");
+                        res.status(401);
+                        res.send();
+		}
+
+	});
 
 	//Handle 404 error page
 	app.get("/error", function(req, res) {

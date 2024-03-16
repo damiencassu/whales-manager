@@ -1,28 +1,70 @@
 {
 	"default": {
-		"htmlClass": "fa-brands fa-docker"
+		"htmlClass": "wm-icons wm-icons-docker"
 	},
 
 	"python": {
-        	"htmlClass": "fa-brands fa-python"
+        	"htmlClass": "wm-icons wm-icons-python"
 	},
 
 	"node": {
-        	"htmlClass": "fa-brands fa-node-js"
+        	"htmlClass": "wm-icons wm-icons-nodejs"
 	},
 	"centos": {
-        	"htmlClass": "fa-brands fa-centos"
+        	"htmlClass": "wm-icons wm-icons-centos"
 	},
 	"redhat": {
-        	"htmlClass": "fa-brands fa-redhat"
+        	"htmlClass": "wm-icons wm-icons-redhat"
 	},
 	"ubuntu": {
-        	"htmlClass": "fa-brands fa-ubuntu"
+        	"htmlClass": "wm-icons wm-icons-ubuntu"
 	},
 	"fedora": {
-        	"htmlClass": "fa-brands fa-fedora"
+        	"htmlClass": "wm-icons wm-icons-fedora"
 	},
+	"eclipse-mosquitto": {
+                "htmlClass": "wm-icons wm-icons-mosquitto"
+        },
+	"homebridge": {
+                "htmlClass": "wm-icons wm-icons-homebridge"
+        },
+	"homeassistant": {
+                "htmlClass": "wm-icons wm-icons-homeassistant"
+        },
+	"httpd": {
+                "htmlClass": "wm-icons wm-icons-apache"
+        },
+	"splunk": {
+                "htmlClass": "wm-icons wm-icons-splunk"
+        },
+	"grafana": {
+                "htmlClass": "wm-icons wm-icons-grafana"
+        },
+	"mongo": {
+                "htmlClass": "wm-icons wm-icons-mongodb"
+        },
+	"mysql": {
+                "htmlClass": "wm-icons wm-icons-mysql"
+        },
+	"nginx": {
+                "htmlClass": "wm-icons wm-icons-nginx"
+        },
+	"pihole": {
+                "htmlClass": "wm-icons wm-icons-pihole"
+        },
+	"postgres": {
+                "htmlClass": "wm-icons wm-icons-postgresql"
+        },
+	"redis": {
+                "htmlClass": "wm-icons wm-icons-redis"
+        },
+	"mariadb": {
+                "htmlClass": "wm-icons wm-icons-mariadb"
+        },
+	"koenkk": {
+                "htmlClass": "wm-icons wm-icons-zigbee"
+        },
 	"php": {
-        	"htmlClass": "fa-brands fa-php"
+        	"htmlClass": "wm-icons wm-icons-php"
 	}
 }

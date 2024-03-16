@@ -8,14 +8,14 @@ async function getSystemEngineInfos(){
                 var dataSI = await resSI.json();
 	        var dataEI = await resEI.json();
 
-                dataHtml = "<div><h3 class=\"wm-settings-title\">System Informations <i class=\"bi bi-motherboard-fill\"></i></h3>";
+                dataHtml = "<div><h3 class=\"wm-settings-title\">System Informations <i class=\"wm-icons wm-icons-motherboard\"></i></h3>";
 		dataHtml += "<p><strong>Operating System: </strong>" + dataSI.OperatingSystem + "</p>";
 		dataHtml += "<p><strong>Operating System Version: </strong>" + dataSI.OSVersion + "</p>";
 		dataHtml += "<p><strong>Kernel Version: </strong>" + dataSI.KernelVersion + "</p>";
 		dataHtml += "<p><strong>Architecture: </strong>" + dataSI.Architecture + "</p>";
 		dataHtml += "<p><strong>CPU Number: </strong>" + dataSI.NCPU + "</p>";
 		dataHtml += "<p><strong>RAM: </strong>" + dataSI.MemTotal + " Bytes (" + dataSI.MemTotal / 1000000000 + " GB)</p>";
-		dataHtml += "<h3 class=\"wm-settings-title\">Docker Engine <i class=\"fa-brands fa-docker\"></i></h3>";
+		dataHtml += "<h3 class=\"wm-settings-title\">Docker Engine <i class=\"wm-icons wm-icons-docker\"></i></h3>";
 		dataHtml += "<p><strong>Engine Version: </strong>" + dataEI.Version + "</p>";
 		dataHtml += "<p><strong>Max API Version: </strong>" + dataEI.MaxApiVersion + "</p>";
 		dataHtml += "<p><strong>Used API Version: </strong>" + dataEI.UsedApiVersion + "</p>"; 
@@ -139,11 +139,11 @@ async function getNativeAuthenticationInfos() {
 	if (res.status == 200) {
 		var data = await res.json();
 
-		dataHtml = "<div><h3 class=\"wm-settings-title\">Change native account username <i class=\"bi bi-person-fill\"></i></h3>";
+		dataHtml = "<div><h3 class=\"wm-settings-title\">Change native account username <i class=\"wm-icons wm-icons-person\"></i></h3>";
 		dataHtml += "<form class=\"row g-3\"><div class=\"col-auto\"><input type=\"text\" placeholder=\"Enter new username\" class=\"form-control\" id=\"userID\"></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-chg-username-button\" class=\"btn wm-chg-button\">Change</button></div><div id=\"changeUsernameMessage\" class=\"col-auto\"></div></form><i>Authorized charaters are A-Z, a-z and 0-9</i>";
-		dataHtml += "<h3 class=\"wm-settings-title\">Change native account password <i class=\"bi bi-key-fill\"></i></h3>"
+		dataHtml += "<h3 class=\"wm-settings-title\">Change native account password <i class=\"wm-icons wm-icons-key\"></i></h3>"
 		dataHtml += "<form class=\"row g-3\"><div class=\"col-auto\"><input type=\"password\" placeholder=\"Enter new password\" class=\"form-control\" id=\"userPassword\"></div><div class=\"col-auto\"><button type=\"button\" id=\"wm-chg-password-button\" class=\"btn wm-chg-button\">Change</button></div><div id=\"changePasswordMessage\" class=\"col-auto\"></div></form><i>Password must be 12 characters long at least</i>";
-		dataHtml += "<h3 class=\"wm-settings-title\">Native authentication status <i class=\"bi bi-shield-lock-fill\"></i></h3>";
+		dataHtml += "<h3 class=\"wm-settings-title\">Native authentication status <i class=\"wm-icons wm-icons-shieldlock\"></i></h3>";
 		if(data.enabled){
 			dataHtml += "<form class=\"row g-3 align-items-center\"><div class=\"col-auto\"><div class=\"alert alert-success\" role=\"alert\"><strong>The Authentication Module is Enabled</strong></div></div></form>";
 		} else {

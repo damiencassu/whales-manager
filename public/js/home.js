@@ -32,14 +32,14 @@ async function startContainer(eventTarget) {
 	} 
 
 	//Stop the loading
-	eventTarget.srcElement.className = "wm-container-controls wm-start bi bi-play-circle";
+	eventTarget.srcElement.className = "wm-container-controls wm-start wm-icons wm-icons-play";
 }	
 
 //Change the triggered start button display and triggers API call
 function loadStartContainer(eventTarget) {
 	
 	//Put the start button in glowing mode
-	eventTarget.srcElement.className = "wm-container-controls-loading wm-start bi bi-play-circle";
+	eventTarget.srcElement.className = "wm-container-controls-loading wm-start wm-icons wm-icons-play";
 	setTimeout(startContainer, "2000", eventTarget);
 }
 
@@ -62,14 +62,14 @@ async function stopContainer(eventTarget) {
          }
 
          //Stop the loading
-         eventTarget.srcElement.className = "wm-container-controls wm-stop bi bi-stop-circle";
+         eventTarget.srcElement.className = "wm-container-controls wm-stop wm-icons wm-icons-stop";
 
 }
 
 function loadStopContainer(eventTarget) {
 
 	//Put the stop button in glowing mode
-        eventTarget.srcElement.className = "wm-container-controls-loading wm-stop bi bi-stop-circle";
+        eventTarget.srcElement.className = "wm-container-controls-loading wm-stop wm-icons wm-icons-stop";
         setTimeout(stopContainer, "2000", eventTarget);
 }
 
@@ -92,14 +92,14 @@ async function restartContainer(eventTarget) {
 	}
 
 	//Stop the loading
-	eventTarget.srcElement.className = "wm-container-controls wm-restart bi bi-arrow-clockwise";
+	eventTarget.srcElement.className = "wm-container-controls wm-restart wm-icons wm-icons-restart";
 }
 
 //Call API to restart a container
 function loadRestartContainer(eventTarget) {
 
 	//Put the restart button in glowing mode
-	eventTarget.srcElement.className = "wm-container-controls-loading wm-restart bi bi-arrow-clockwise";
+	eventTarget.srcElement.className = "wm-container-controls-loading wm-restart wm-icons wm-icons-restart";
         setTimeout(restartContainer, "2000", eventTarget);
 }
 
@@ -122,9 +122,9 @@ async function getContainersList() {
 			dataHtml+= "<div class=\"col-3 wm-container\" id=\"" + data[index].id + "\">";
 			dataHtml+= "<h3 class=\"wm-container-text\">" + data[index].name  + "</h3>";
 			dataHtml+= "<p class=\"wm-container-text\">" + data[index].image + "</p>";
-			dataHtml+= "<p><span class=\"" + data[index].imageHtmlClass.htmlClass + " fa-2xl wm-container-icon\"></span></p>";
+			dataHtml+= "<p><span class=\"" + data[index].imageHtmlClass.htmlClass + " wm-2xl wm-container-icon\"></span></p>";
 			dataHtml+= "<p><span class=\"wm-container-status " + data[index].stateHtmlClass.htmlClass + "\">" + data[index].state.toUpperCase() + "</span></p>";
-			dataHtml+= "<h4><span class=\"wm-container-controls wm-start bi bi-play-circle\"></span><span class=\"wm-container-controls wm-stop bi bi-stop-circle\"></span><span class=\"wm-container-controls wm-restart bi bi-arrow-clockwise\"></span></h4>";
+			dataHtml+= "<h4><span class=\"wm-container-controls wm-start wm-icons wm-icons-play\"></span><span class=\"wm-container-controls wm-stop wm-icons wm-icons-stop\"></span><span class=\"wm-container-controls wm-restart wm-icons wm-icons-restart\"></span></h4>";
 			dataHtml+= "</div>";
 			elementsInRow++;
 		

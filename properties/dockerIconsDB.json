@@ -2,7 +2,9 @@
 	"default": {
 		"htmlClass": "wm-icons wm-icons-docker"
 	},
-
+	"whalesmanager": {
+                "htmlClass": "wm-icons wm-icons-whalesmanager"
+        },
 	"python": {
         	"htmlClass": "wm-icons wm-icons-python"
 	},

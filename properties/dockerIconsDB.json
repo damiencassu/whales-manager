@@ -64,6 +64,18 @@
 	"koenkk": {
                 "htmlClass": "wm-icons wm-icons-zigbee"
         },
+	"gitea": {
+                "htmlClass": "wm-icons wm-icons-gitea"
+        },
+	"hashicorp": {
+                "htmlClass": "wm-icons wm-icons-hashicorp"
+        },
+	"portainer": {
+                "htmlClass": "wm-icons wm-icons-portainer"
+        },
+	"vaultwarden": {
+                "htmlClass": "wm-icons wm-icons-vaultwarden"
+        },
 	"php": {
         	"htmlClass": "wm-icons wm-icons-php"
 	}

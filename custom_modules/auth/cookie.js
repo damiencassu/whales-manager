@@ -5,6 +5,7 @@ const NODECRYPO = require("node:crypto");
 
 //Program constants
 const COOKIE_VALUE_LENGTH = 16;
+const MAX_USER_SESSION_TABLE_SIZE = 1000;
 
 class Cookie {
 
@@ -75,10 +76,21 @@ class Cookie {
 
 	//Take a users sessions MAP and add the cookie value to it along with the corresponding username
 	registerCookie(usersSessionsTable, username, logger){
+
+		if (usersSessionsTable.size == MAX_USER_SESSION_TABLE_SIZE){
+		
+			if (logger != undefined){
+                        	logger.warn("cookie", "Users session table max size reached, killing oldest session");
+                	}
+			
+			//Retrieve the oldest element and remove it
+			usersSessionsTable.delete(usersSessionsTable.keys().next().value);
+		} 
 		
 		if (logger != undefined){
-                	logger.debug("cookie", "New user session registered");
+                        logger.debug("cookie", "New user session registered");
                 }
+
 		usersSessionsTable.set(this._value, username);
 	}
 

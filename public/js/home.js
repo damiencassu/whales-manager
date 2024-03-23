@@ -178,6 +178,7 @@ async function checkUpdate() {
 
 	document.getElementById("wm-update-result").innerHTML = dataHtml;
 	document.getElementById("wm-update-button").innerHTML = "Check for updates";
+	document.getElementById("wm-update-button").disabled = false;
 }
 
 
@@ -193,9 +194,10 @@ function loadContent() {
 //Handles update button load animation and triggers API call
 function loadUpdate() {
 
+	document.getElementById("wm-update-button").disabled = true;
 	document.getElementById("wm-update-button").innerHTML = "<span class=\"wm-loading-dots\"><span></span><span></span><span></span></span>";
 	//Api call to check update
-	checkUpdate();
+	setTimeout(checkUpdate, "1500");
 }
 
 

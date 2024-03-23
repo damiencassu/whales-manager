@@ -83,6 +83,8 @@ async function sendNewUserName(){
                 document.getElementById("changeUsernameMessage").innerHTML = "<h3 class=\"fs-6 wm-chg-message-error\">Username change failed</h3>";
         }
 
+	document.getElementById("wm-chg-username-button").disabled = false;
+
 }
 
 //Call API to change native user password
@@ -108,11 +110,14 @@ async function sendNewUserPassword(){
 		document.getElementById("changePasswordMessage").innerHTML = "<h3 class=\"fs-6 wm-chg-message-error\">Password change failed</h3>";
 	}
 
+	document.getElementById("wm-chg-password-button").disabled = false;
+
 }
 
 //Handles button load animation
 function setSpinner(buttonID) {
 
+	document.getElementById(buttonID).disabled = true;
 	document.getElementById(buttonID).innerHTML = "<span class=\"wm-loading-dots\"><span></span><span></span><span></span></span>";
 
 }

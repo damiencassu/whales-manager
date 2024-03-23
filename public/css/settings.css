@@ -62,9 +62,9 @@
 
 
 .wm-chg-button {
-        color: #000;
-        background-color: #ffc107;
-        border-color: #ffc107;
+        color: #000!important;
+        background-color: #ffc107!important;
+        border-color: #ffc107!important;
 }
 
 .wm-chg-button:hover {

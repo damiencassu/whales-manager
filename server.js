@@ -711,7 +711,7 @@ if (!startupError) {
                 res.setHeader("Content-Type", "application/json");
 
                 if(!JSON.parse(APP_CONFIG.authentication.enabled)){
-                        sysLogger.debug("server", "Authentication disabled, skipping change username request");
+                        sysLogger.warn("server", "Authentication disabled, skipping change username request");
                         res.status(401);
                         res.send();
 
@@ -756,7 +756,7 @@ if (!startupError) {
 		res.setHeader("Content-Type", "application/json");
 		
 		if(!JSON.parse(APP_CONFIG.authentication.enabled)){
-                        sysLogger.debug("server", "Authentication disabled, skipping change password request");
+                        sysLogger.warn("server", "Authentication disabled, skipping change password request");
                         res.status(401);
                         res.send();
 

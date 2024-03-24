@@ -4,13 +4,13 @@
         <meta charset="utf-8">
 		<!-- Bootstrap-5.3.2 -->
 		<link href="/css/bootstrap.min.css" rel="stylesheet">
-		<!-- Bootstrap-Icons-1.11.0 -->
-		<link href="/css/bootstrap-icons.min.css" rel="stylesheet">
-		<!-- Fontawesome-Free-6.5.1 -->
-		<link href="/css/fontawesome.min.css" rel="stylesheet">
-		<link href="/css/fontawesome-brands.min.css" rel="stylesheet">
 		<!-- Custom Styles -->
 		<link href="/css/home.css" rel="stylesheet">
+		<!-- Whales Manager Icons -->
+		<link href="/css/wm-icons.css" rel="stylesheet">
+		<!-- Whales Manager Favicon -->
+		<link rel="icon" href="/favicon.ico" sizes="any">
+                <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <title>Whales Manager</title>
     </head>
     <body>
@@ -19,13 +19,13 @@
 			<div class="container-fluid">
 				<ul class="navbar-nav justify-content-end">
 					<li class="nav-item">
-						<i id="refreshButton" class="bi bi-arrow-repeat fa-2x wm-navbar-icon"></i>
+						<i id="refreshButton" class="wm-icons wm-icons-reload wm-2x wm-navbar-icon"></i>
 					</li>
 				</ul>
 				<div class="justify-content-end">
-					<% if (authEnabled){ %><a class="mx-2" id="wm-user-popup-link" tabindex="0" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="focus" data-bs-html="true" data-bs-title=<%=username%> data-bs-content='<div class="popover" role="tooltip"><div><a class="btn btn-primary" id="wm-logout-button" href="/sys/logout" role="button">Logout</a></div></div>'><i class="bi bi-person-circle fa-2x wm-navbar-icon"></i></a><% } %>
-					<a class="mx-2" href=/settings><i class="bi bi-gear fa-2x wm-navbar-icon"></i></a>
-					<span class="mx-2"><i class="bi bi-question-circle fa-2x wm-navbar-icon" data-bs-toggle="modal" data-bs-target="#aboutPopup"></i></span>
+					<% if (authEnabled){ %><a class="mx-2" id="wm-user-popup-link" tabindex="0" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="focus" data-bs-html="true" data-bs-title=<%=username%> data-bs-content='<div class="popover" role="tooltip"><div><a class="btn btn-primary" id="wm-logout-button" href="/sys/logout" role="button">Logout</a></div></div>'><i class="wm-icons wm-icons-user wm-2x wm-navbar-icon"></i></a><% } %>
+					<a class="mx-2" href=/settings><i class="wm-icons wm-icons-gear wm-2x wm-navbar-icon"></i></a>
+					<span class="mx-2"><i class="wm-icons wm-icons-question wm-2x wm-navbar-icon" data-bs-toggle="modal" data-bs-target="#aboutPopup"></i></span>
 				</div>
 				
 			</div>
@@ -45,8 +45,9 @@
 					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body wm-about-popup-body">
+					<p><span id="wm-logo" class="wm-icons wm-icons-whalesmanager wm-2xl"></span></p>
 					<p>You are currently running Whales Manager v<%=appVersion%> <% if (dockerized){ %>(dockerized)<% } %><p>
-					<p>Source code and documentation on  <a class="bi bi-github fa-lg wm-navbar-icon" href="<%=appRepoUrl%>"></a></p>
+					<p>Source code and documentation on  <a class="wm-icons wm-icons-github wm-lg wm-navbar-icon" href="<%=appRepoUrl%>"></a></p>
 				</div>
 				<div class="modal-footer wm-about-popup-footer">
 					<button type="button" id="wm-update-button" class="btn">Check for updates</button>

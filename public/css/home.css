@@ -29,6 +29,8 @@
 
 .wm-navbar-icon {
 	color: #ffc107 ;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
 }
 
 .wm-navbar-icon:hover {
@@ -71,9 +73,14 @@
 	border-bottom: 1px solid #ffc107
 }
 
+#wm-logo {
+	color: #ffc107;
+}
+
 .wm-about-popup-body {
 	background-color: #343a40!important;
 	color: #fff!important;
+	text-align: center;
 }
 
 .wm-about-popup-footer {
@@ -84,9 +91,9 @@
 }
 
 #wm-update-button {
-        color: #000;
-        background-color: #ffc107;
-        border-color: #ffc107;	
+        color: #000!important;
+        background-color: #ffc107!important;
+        border-color: #ffc107!important;
 }
 
 #wm-update-button:hover {

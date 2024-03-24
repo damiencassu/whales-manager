@@ -19,14 +19,15 @@ async function sendCredentials () {
 		document.getElementById("userID").value = "";
 		document.getElementById("userPassword").value = "";
 		document.getElementById("wm-login-button").innerHTML = "Log In";
+		document.getElementById("wm-login-button").disabled = false;
 		document.getElementById("loginErrorMessage").hidden = false; 
 	}
-
 }
 
 //Handles login button login animation and triggers credentials post
 function login () {
 
+	document.getElementById("wm-login-button").disabled = true;
 	document.getElementById("wm-login-button").innerHTML = "<span class=\"wm-loading-dots\"><span></span><span></span><span></span></span>";
 	//Post credentials
 	setTimeout(sendCredentials, "1000");
@@ -38,4 +39,10 @@ window.onload = function() {
 
 	//Login button function
 	document.getElementById("wm-login-button").addEventListener("click", login);
+	document.addEventListener("keydown", function(e){
+		
+		if(e.keyCode == 13 && !document.getElementById("wm-login-button").disabled){
+			login();
+		}
+	});
 }

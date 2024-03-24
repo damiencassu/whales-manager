@@ -1,3 +1,5 @@
+<p align="center"><img width="150" height="100" src="https://raw.githubusercontent.com/damiencassu/whales-manager/main/public/favicon.svg" alt="WM Logo" /></p>
+
 Whales Manager
 ==============
 

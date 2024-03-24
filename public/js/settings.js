@@ -78,7 +78,7 @@ async function sendNewUserName(){
                 document.getElementById("wm-chg-username-button").innerHTML = "Change";
                 document.getElementById("changeUsernameMessage").innerHTML = "<h3 class=\"fs-6 wm-chg-message-success\">Username change registered, restart Whales Manager to apply it</h3>";
         } else {
-                document.getElementById("userPassword").value = "";
+                document.getElementById("userID").value = "";
                 document.getElementById("wm-chg-username-button").innerHTML = "Change";
                 document.getElementById("changeUsernameMessage").innerHTML = "<h3 class=\"fs-6 wm-chg-message-error\">Username change failed</h3>";
         }

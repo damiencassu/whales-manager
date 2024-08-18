@@ -2,6 +2,7 @@ FROM node:current-alpine
 ENV APP_HOME="/home/node/app"
 WORKDIR ${APP_HOME}
 RUN apk add git
+RUN apk add openssl
 RUN git clone https://github.com/damiencassu/whales-manager.git ./
 RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install
 EXPOSE 8888

@@ -4,14 +4,14 @@ const HTTP = require("node:http");
 const HTTPS = require("node:https");
 const FS = require("node:fs");
 const PATH = require("node:path");
+const CORE = require("@damiencassu/node-core");
+const LOGGER_SYS = require("@damiencassu/node-syslogger");
 
 //Custom module loading
 const DOCKER_API = require("./custom_modules/docker/dockerAPI");
-const CORE = require("./custom_modules/core/core");
 const CRYPTO = require("./custom_modules/core/crypto");
 const CONTAINER = require("./custom_modules/docker/container");
 const IMAGE = require("./custom_modules/docker/image");
-const LOGGER_SYS = require("./custom_modules/core/logger");
 const LOGGER_HTTP = require("./custom_modules/core/httpLogger");
 const NATIVE = require("./custom_modules/auth/native");
 const COOKIE = require("./custom_modules/auth/cookie");
@@ -227,13 +227,13 @@ if (APP_PACKAGE_JSON != undefined && APP_PORT == undefined){
 
 const DOCKERIZED = CORE.isDockerized(sysLogger);
 
-const DOCKER_STATUS = CORE.loadPropertyFile("./properties/dockerStatusDB.json", sysLogger);
+const DOCKER_STATUS = CORE.loadConfigFile("./properties/dockerStatusDB.json", sysLogger);
 if (DOCKER_STATUS == undefined) {
 	startupError = true;
 	sysLogger.fatal("server", "No dockerStatusDB.json file detected or file corrupted, exiting ...");
 }
 
-const DOCKER_ICONS = CORE.loadPropertyFile("./properties/dockerIconsDB.json", sysLogger);
+const DOCKER_ICONS = CORE.loadConfigFile("./properties/dockerIconsDB.json", sysLogger);
 if (DOCKER_ICONS == undefined) {
 	startupError = true;
 	sysLogger.fatal("server", "No dockerIconsDB.json file detected or file corrupted, exiting ...");

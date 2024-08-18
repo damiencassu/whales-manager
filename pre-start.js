@@ -6,6 +6,17 @@ const PATH = require("node:path");
 const TEMPLATE_DIR = "templates";
 const TEMPLATE_FILES = ["server.json.template", "users.json.template","ca.cfg.template", "cacert.cfg.template", "servweb.cfg.template"];
 
+// Bootstrap related constants
+const BOOTSTRAP_SRC_CSS = "node_modules/bootstrap/dist/css/bootstrap.min.css";
+const BOOTSTRAP_CSS = "bootstrap.min.css";
+const BOOTSTRAP_SRC_JS = "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
+const BOOTSTRAP_JS = "bootstrap.bundle.min.js";
+
+// Public content related constants
+const PUBLIC = "public";
+const CSS = "css";
+const JS = "js";
+
 // Logs related constants
 const LOG_DIR = "logs";
 
@@ -57,3 +68,7 @@ for ( var index=0; index < TEMPLATE_FILES.length; index++ ) {
 		FS.copyFileSync(PATH.join(__dirname, TEMPLATE_DIR, TEMPLATE_FILES[index]), PATH.join(__dirname, CONF_DIR, TEMPLATE_FILES[index].replace(/.template/g, '')));
 	}
 }
+
+//Make sure bootstrap dependencies are available and up to date
+FS.copyFileSync(PATH.join(__dirname, BOOTSTRAP_SRC_CSS), PATH.join(__dirname, PUBLIC, CSS, BOOTSTRAP_CSS));
+FS.copyFileSync(PATH.join(__dirname, BOOTSTRAP_SRC_JS), PATH.join(__dirname, PUBLIC, JS, BOOTSTRAP_JS));

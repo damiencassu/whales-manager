@@ -5,10 +5,12 @@
 	"whalesmanager": {
                 "htmlClass": "wm-icons wm-icons-whalesmanager"
         },
+	"mermaid": {
+                "htmlClass": "wm-icons wm-icons-mermaid"
+        },
 	"python": {
         	"htmlClass": "wm-icons wm-icons-python"
 	},
-
 	"node": {
         	"htmlClass": "wm-icons wm-icons-nodejs"
 	},
@@ -24,6 +26,9 @@
 	"fedora": {
         	"htmlClass": "wm-icons wm-icons-fedora"
 	},
+	"alpine": {
+                "htmlClass": "wm-icons wm-icons-alpine"
+        },
 	"eclipse-mosquitto": {
                 "htmlClass": "wm-icons wm-icons-mosquitto"
         },

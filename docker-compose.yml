@@ -5,6 +5,8 @@ services:
     build: 
         context: .
         dockerfile: Dockerfile
+        secrets:
+          - npmrc
     image: whalesmanager
     restart: always
     container_name: whalesmanager
@@ -19,4 +21,8 @@ services:
       - ./certs:/home/node/app/certs
       - /var/run/docker.sock:/var/run/docker.sock
     command: "npm start"
+
+secrets:
+  npmrc:
+    file: ${HOME}/.npmrc
 ...
